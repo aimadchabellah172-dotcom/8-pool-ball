@@ -253,8 +253,9 @@
         const TABLE_WIDTH = 1000;
         const TABLE_HEIGHT = 500;
         const HOLE_RADIUS = 35;
-        const FRICTION = 0.985;
-        const SUBSTEPS = 12; // Higher precision for physics
+        const CUSHION_SIZE = 22;
+        const FRICTION = 0.988;
+        const SUBSTEPS = 14; 
 
         let canvas, ctx;
         let balls = [];
@@ -288,35 +289,37 @@
                 if(this.inPocket) return;
 
                 this.pos = this.pos.add(this.vel.mult(dt));
-                this.vel = this.vel.mult(Math.pow(FRICTION, dt * 80));
-                if(this.vel.mag() < 0.25) this.vel = new Vector(0,0);
+                this.vel = this.vel.mult(Math.pow(FRICTION, dt * 100)); // Calibrated friction
+                if(this.vel.mag() < 0.2) this.vel = new Vector(0,0);
 
-                // Professional Wall Bounce
-                const cushionSoftness = 0.85;
-                if(this.pos.x - BALL_RADIUS < 0) {
-                    this.vel.x *= -cushionSoftness;
-                    this.pos.x = BALL_RADIUS;
-                } else if(this.pos.x + BALL_RADIUS > TABLE_WIDTH) {
-                    this.vel.x *= -cushionSoftness;
-                    this.pos.x = TABLE_WIDTH - BALL_RADIUS;
+                // Boundary/Cushion Physics
+                const bounce = 0.82;
+                if(this.pos.x - BALL_RADIUS < CUSHION_SIZE) {
+                    this.vel.x *= -bounce;
+                    this.pos.x = CUSHION_SIZE + BALL_RADIUS;
+                } else if(this.pos.x + BALL_RADIUS > TABLE_WIDTH - CUSHION_SIZE) {
+                    this.vel.x *= -bounce;
+                    this.pos.x = TABLE_WIDTH - CUSHION_SIZE - BALL_RADIUS;
                 }
                 
-                if(this.pos.y - BALL_RADIUS < 0) {
-                    this.vel.y *= -cushionSoftness;
-                    this.pos.y = BALL_RADIUS;
-                } else if(this.pos.y + BALL_RADIUS > TABLE_HEIGHT) {
-                    this.vel.y *= -cushionSoftness;
-                    this.pos.y = TABLE_HEIGHT - BALL_RADIUS;
+                if(this.pos.y - BALL_RADIUS < CUSHION_SIZE) {
+                    this.vel.y *= -bounce;
+                    this.pos.y = CUSHION_SIZE + BALL_RADIUS;
+                } else if(this.pos.y + BALL_RADIUS > TABLE_HEIGHT - CUSHION_SIZE) {
+                    this.vel.y *= -bounce;
+                    this.pos.y = TABLE_HEIGHT - CUSHION_SIZE - BALL_RADIUS;
                 }
 
-                // Smooth Pocketing
-                const pockets = [[0,0], [TABLE_WIDTH/2, 0], [TABLE_WIDTH, 0], [0, TABLE_HEIGHT], [TABLE_WIDTH/2, TABLE_HEIGHT], [TABLE_WIDTH, TABLE_HEIGHT]];
+                // Precision Pocketing
+                const pockets = [[CUSHION_SIZE, CUSHION_SIZE], [TABLE_WIDTH/2, 18], [TABLE_WIDTH-CUSHION_SIZE, CUSHION_SIZE], 
+                                 [CUSHION_SIZE, TABLE_HEIGHT-CUSHION_SIZE], [TABLE_WIDTH/2, TABLE_HEIGHT-18], [TABLE_WIDTH-CUSHION_SIZE, TABLE_HEIGHT-CUSHION_SIZE]];
                 pockets.forEach(p => {
                     let d = new Vector(this.pos.x - p[0], this.pos.y - p[1]).mag();
-                    if(d < HOLE_RADIUS * 0.9) {
+                    if(d < HOLE_RADIUS * 0.8) {
                         this.inPocket = true;
                         this.vel = new Vector(0,0);
-                        checkWinCondition();
+                        if(this.num === 0) setTimeout(() => resetCueBall(), 500); 
+                        else checkWinCondition();
                     }
                 });
             }
@@ -389,17 +392,29 @@
             balls.push(cueBall);
 
             const colors = ["#facc15", "#2563eb", "#dc2626", "#7c3aed", "#f97316", "#15803d", "#991b1b", "#000"];
-            const rackX = 700;
+            const rackX = 720;
             const rackY = 250;
             let counter = 0;
+            // Precise triangular racking
+            const gap = 0.5;
             for(let r=0; r<5; r++) {
                 for(let i=0; i<=r; i++) {
                     counter++;
                     let color = colors[counter % colors.length];
                     if(counter === 8) color = "#000";
-                    balls.push(new Ball(rackX + r*27, rackY - (r*15.5) + i*31, counter, color, counter > 8));
+                    balls.push(new Ball(
+                        rackX + r * (BALL_RADIUS * 2 * 0.87 + gap), 
+                        rackY - (r * BALL_RADIUS) + (i * (BALL_RADIUS * 2 + gap)), 
+                        counter, color, counter > 8
+                    ));
                 }
             }
+        }
+
+        function resetCueBall() {
+            cueBall.inPocket = false;
+            cueBall.pos = new Vector(250, 250);
+            cueBall.vel = new Vector(0, 0);
         }
 
         function resolveCollisions() {
@@ -442,35 +457,46 @@
 
         function drawAiming() {
             let aimDir = new Vector(Math.cos(cue.angle), Math.sin(cue.angle));
-            ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+            
+            // Prediction Line (Hitting direction)
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
             ctx.lineWidth = 2;
-            ctx.setLineDash([8, 8]);
+            ctx.setLineDash([10, 10]);
             ctx.beginPath();
             ctx.moveTo(cueBall.pos.x, cueBall.pos.y);
-            let aimPoint = cueBall.pos.sub(aimDir.mult(600));
+            let aimPoint = cueBall.pos.add(aimDir.mult(600)); 
             ctx.lineTo(aimPoint.x, aimPoint.y);
             ctx.stroke();
             ctx.setLineDash([]);
             
-            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-            ctx.beginPath();
-            ctx.arc(cueBall.pos.x - aimDir.x * 100, cueBall.pos.y - aimDir.y * 100, BALL_RADIUS, 0, Math.PI*2);
-            ctx.stroke();
-
+            // The Stick (Opposite to hit direction)
             ctx.save();
             ctx.translate(cueBall.pos.x, cueBall.pos.y);
-            ctx.rotate(cue.angle);
+            ctx.rotate(cue.angle + Math.PI); // Stick is on the opposite side of aim
+            
             let powerOffset = cue.power * 0.8;
+            
+            // Stick Shadow
             ctx.fillStyle = 'rgba(0,0,0,0.5)';
-            ctx.fillRect(45 + powerOffset, 8, 380, 8);
-            let cGrad = ctx.createLinearGradient(40+powerOffset, 0, 420+powerOffset, 0);
-            cGrad.addColorStop(0, '#fff');
-            cGrad.addColorStop(0.1, '#d4af37');
-            cGrad.addColorStop(1, '#1a1a1a');
-            ctx.fillStyle = cGrad;
+            ctx.fillRect(CUSHION_SIZE + powerOffset + 10, 10, 400, 10);
+
+            // Stick Body
+            let cueGrad = ctx.createLinearGradient(CUSHION_SIZE + powerOffset, 0, 450 + powerOffset, 0);
+            cueGrad.addColorStop(0, '#fff');
+            cueGrad.addColorStop(0.05, '#facc15');
+            cueGrad.addColorStop(0.1, '#3e2723');
+            cueGrad.addColorStop(1, '#111');
+            
+            ctx.fillStyle = cueGrad;
             ctx.beginPath();
-            ctx.roundRect(40 + powerOffset, -6, 380, 12, [2, 10, 10, 2]);
+            ctx.roundRect(CUSHION_SIZE + powerOffset, -6, 400, 12, [2, 10, 10, 2]);
             ctx.fill();
+            
+            // Gold Inlays
+            ctx.strokeStyle = 'rgba(255,215,0,0.4)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
             ctx.restore();
         }
 
@@ -681,19 +707,24 @@
                 let rect = canvas.getBoundingClientRect();
                 let mx = e.clientX - rect.left;
                 let my = e.clientY - rect.top;
+                // Aim logic: Hit towards cursor
                 cue.angle = Math.atan2(my - cueBall.pos.y, mx - cueBall.pos.x);
             };
-            canvas.onmousedown = () => cue.charging = true;
+            canvas.onmousedown = () => {
+                if(gameState === 'PLAYING' && balls.every(b => b.vel.mag() < 0.1)) {
+                    cue.charging = true;
+                }
+            };
             canvas.onmouseup = () => {
                 if(cue.charging) {
-                    let force = cue.power * 8.5;
-                    cueBall.vel = new Vector(-Math.cos(cue.angle) * force, -Math.sin(cue.angle) * force);
+                    let force = (cue.power / 100) * 45; 
+                    cueBall.vel = new Vector(Math.cos(cue.angle) * force, Math.sin(cue.angle) * force);
                     cue.power = 0;
                     cue.charging = false;
                 }
             };
             setInterval(() => {
-                if(cue.charging) cue.power = (cue.power + 2.5) % 100;
+                if(cue.charging) cue.power = (cue.power + 2.2) % 100;
             }, 16);
         }
 
