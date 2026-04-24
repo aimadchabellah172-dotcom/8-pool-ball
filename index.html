@@ -1,596 +1,609 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>رويال بلياردو | تجربة القمة</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
-    
-    <!-- Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Cairo', 'sans-serif'] },
-                    colors: {
-                        gold: {
-                            50: '#fffdf0',
-                            100: '#fef9c3',
-                            200: '#fef08a',
-                            300: '#fde047',
-                            400: '#facc15',
-                            500: '#eab308',
-                            600: '#ca8a04',
-                            700: '#a16207',
-                            800: '#854d0e',
-                            900: '#713f12',
-                        }
-                    },
-                    animation: {
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                    }
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+
+<!-- Lucide Icons -->
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<!-- Canvas Confetti -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                fontFamily: {
+                    sans: ['Tajawal', 'sans-serif'],
+                    display: ['Orbitron', 'sans-serif'],
+                },
+                colors: {
+                    gold: '#C5A021',
+                    felt: '#0A5C36',
+                    dark: '#080C14',
+                    panel: '#151C2C'
                 }
             }
         }
-    </script>
+    }
+</script>
 
-    <style type="text/tailwindcss">
-        @layer base {
-            body { @apply bg-[#0a0a0a] text-slate-100 overflow-x-hidden; }
-        }
+<style type="text/tailwindcss">
+    @layer base {
+        body { @apply bg-dark text-slate-200 font-sans overflow-hidden; }
+    }
 
-        .gold-gradient {
-            background: linear-gradient(135deg, #ca8a04 0%, #facc15 50%, #ca8a04 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+    .glass-panel {
+        @apply bg-panel/80 backdrop-blur-xl border border-white/10 shadow-2xl;
+    }
 
-        .premium-border {
-            border: 1px solid rgba(202, 138, 4, 0.2);
-        }
+    .btn-primary {
+        @apply bg-gradient-to-r from-gold to-yellow-600 text-dark font-black py-3 px-8 rounded-full shadow-lg shadow-gold/20 hover:scale-105 active:scale-95 transition-all;
+    }
 
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
+    .game-canvas {
+        cursor: crosshair;
+        @apply rounded-[2rem] shadow-[0_0_50px_rgba(10,92,54,0.3)];
+    }
 
-        .btn-gold {
-            @apply bg-gold-600 text-black font-bold py-3 px-8 rounded-full hover:bg-gold-500 transition-all shadow-lg shadow-gold-900/20 active:scale-95;
-        }
+    .item-card {
+        @apply bg-white/5 border border-white/10 rounded-3xl p-4 hover:bg-white/10 transition-all cursor-pointer;
+    }
 
-        #gameCanvas {
-            cursor: crosshair;
-            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
-        }
+    .progress-bar {
+        @apply h-2 w-full bg-slate-700 rounded-full overflow-hidden;
+    }
 
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0a0a0a; }
-        ::-webkit-scrollbar-thumb { background: #ca8a04; border-radius: 10px; }
-    </style>
-</head>
-<body class="font-sans">
+    .wheel-container {
+        @apply relative w-64 h-64 mx-auto;
+    }
 
-    <!-- Preloader/Overlay -->
-    <div id="gameOverlay" class="fixed inset-0 z-[100] bg-black bg-opacity-90 flex items-center justify-center transition-all duration-700">
-        <div class="text-center space-y-8 max-w-lg px-6">
-            <h1 class="text-7xl font-black gold-gradient tracking-tighter">ROYAL BILLIARDS</h1>
-            <p class="text-xl text-slate-400">مرحباً بك في نادي النخبة. استعد لتحدي الملوك.</p>
-            <div class="space-y-4">
-                <button onclick="startGame()" class="btn-gold w-full text-2xl">ابدأ اللعب الآن</button>
-                <div class="flex gap-4">
-                    <button onclick="toggleView('shop')" class="flex-1 bg-white/5 border border-white/10 py-3 rounded-2xl hover:bg-white/10">المتجر</button>
-                    <button onclick="toggleView('missions')" class="flex-1 bg-white/5 border border-white/10 py-3 rounded-2xl hover:bg-white/10">المهمات</button>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #C5A021; border-radius: 10px; }
+
+    @keyframes pulse-gold {
+        0% { box-shadow: 0 0 0 0 rgba(197, 160, 33, 0.4); }
+        70% { box-shadow: 0 0 0 20px rgba(197, 160, 33, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(197, 160, 33, 0); }
+    }
+
+    .animate-pulse-gold { animation: pulse-gold 2s infinite; }
+</style>
+<!-- Loading Screen -->
+<div id="loader" class="fixed inset-0 z-[100] bg-dark flex flex-col items-center justify-center transition-opacity duration-1000">
+    <div class="w-24 h-24 border-8 border-gold/20 border-t-gold rounded-full animate-spin mb-8"></div>
+    <h1 class="text-4xl font-display font-bold text-gold tracking-widest">ELITE POOL</h1>
+    <p class="mt-4 text-slate-500 font-medium">جاري تجهيز الطاولة الفاخرة...</p>
+</div>
+
+<!-- UI: HUD (Top) -->
+<div class="fixed top-0 inset-x-0 p-6 z-40 pointer-events-none">
+    <div class="max-w-7xl mx-auto flex justify-between items-start">
+        <!-- Profile Info -->
+        <div class="flex items-center gap-4 glass-panel p-3 rounded-3xl pointer-events-auto">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-gold to-yellow-700 p-0.5 shadow-lg">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Nile" class="w-full h-full rounded-2xl bg-dark" alt="Avatar">
+            </div>
+            <div class="ml-4">
+                <div class="text-xs text-slate-400 font-bold uppercase tracking-tighter">المستوى <span id="level-num">12</span></div>
+                <div class="text-lg font-black text-white">اللاعب المحترف</div>
+                <div class="w-32 progress-bar mt-1">
+                    <div id="xp-bar" class="h-full bg-gold shadow-[0_0_10px_#C5A021]" style="width: 65%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Global Stats -->
+        <div class="flex gap-4 pointer-events-auto">
+            <div class="glass-panel px-6 py-3 rounded-2xl flex items-center gap-3">
+                <i data-lucide="coins" class="text-gold w-5 h-5"></i>
+                <span id="coins-count" class="font-display font-bold text-xl">2,500</span>
+                <button onclick="openStore()" class="w-6 h-6 bg-gold text-dark rounded-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-transform">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <div class="glass-panel px-6 py-3 rounded-2xl flex items-center gap-3">
+                <i data-lucide="gem" class="text-blue-400 w-5 h-5"></i>
+                <span id="gems-count" class="font-display font-bold text-xl">45</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- UI: Sidebar Controls -->
+<div class="fixed right-6 top-1/2 -translate-y-1/2 flex flex-col gap-6 z-40">
+    <button onclick="openMissions()" class="relative group glass-panel w-16 h-16 rounded-2xl flex items-center justify-center hover:bg-gold hover:text-dark transition-all animate-pulse-gold">
+        <i data-lucide="target" class="w-8 h-8"></i>
+        <span class="absolute -left-20 bg-dark text-white px-3 py-1 rounded-lg text-sm opacity-0 group-hover:opacity-100 transition-opacity">المهمات</span>
+    </button>
+    <button onclick="openLuckyWheel()" class="relative group glass-panel w-16 h-16 rounded-2xl flex items-center justify-center hover:bg-pink-500 hover:text-white transition-all">
+        <i data-lucide="refresh-cw" class="w-8 h-8"></i>
+        <span class="absolute -left-24 bg-dark text-white px-3 py-1 rounded-lg text-sm opacity-0 group-hover:opacity-100 transition-opacity">عجلة الحظ</span>
+    </button>
+    <button onclick="openVault()" class="relative group glass-panel w-16 h-16 rounded-2xl flex items-center justify-center hover:bg-slate-700 transition-all">
+        <i data-lucide="safe" class="w-8 h-8"></i>
+        <span class="absolute -left-20 bg-dark text-white px-3 py-1 rounded-lg text-sm opacity-0 group-hover:opacity-100 transition-opacity">الخزنة</span>
+    </button>
+    <button onclick="openStore()" class="relative group glass-panel w-16 h-16 rounded-2xl flex items-center justify-center hover:bg-gold hover:text-dark transition-all">
+        <i data-lucide="shopping-cart" class="w-8 h-8"></i>
+        <span class="absolute -left-20 bg-dark text-white px-3 py-1 rounded-lg text-sm opacity-0 group-hover:opacity-100 transition-opacity">المتجر</span>
+    </button>
+</div>
+
+<!-- Main Game Area -->
+<div id="game-container" class="relative w-full h-full flex items-center justify-center bg-[radial-gradient(circle_at_center,_#1a2a40_0%,_#080c14_100%)]">
+    <!-- Power Bar (Dynamic) -->
+    <div id="power-indicator" class="absolute left-20 h-[400px] w-6 bg-slate-900/50 rounded-full border border-white/10 overflow-hidden hidden">
+        <div id="power-level" class="absolute bottom-0 w-full bg-gradient-to-t from-red-600 via-yellow-500 to-green-500 transition-all" style="height: 0%"></div>
+    </div>
+
+    <canvas id="pool-canvas" class="game-canvas bg-felt"></canvas>
+    
+    <!-- Game HUD Overlay -->
+    <div id="game-overlay" class="absolute inset-0 pointer-events-none flex flex-col items-center justify-between py-16 px-24">
+        <div id="turn-indicator" class="glass-panel px-12 py-4 rounded-full text-2xl font-black uppercase tracking-[0.2em] text-gold opacity-0 transition-opacity">
+            دورك الآن
+        </div>
+        
+        <div id="last-shot-info" class="self-end glass-panel px-6 py-3 rounded-2xl text-slate-400 font-bold opacity-0">
+            آخر ضربة: <span class="text-white">قوية جداً</span>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Store -->
+<div id="store-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-6">
+    <div class="glass-panel w-full max-w-5xl rounded-[3rem] p-12 relative overflow-hidden group">
+        <button onclick="closeModal('store-modal')" class="absolute top-8 left-8 text-slate-400 hover:text-white"><i data-lucide="x" class="w-8 h-8"></i></button>
+        <h2 class="text-4xl font-black mb-12 flex items-center gap-4"><i data-lucide="shopping-bag" class="text-gold"></i> المتجر الملكي</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Tab: Cues -->
+            <div class="col-span-2 grid grid-cols-2 gap-6">
+                <div class="item-card group">
+                    <div class="h-40 bg-slate-900/50 rounded-2xl mb-4 flex items-center justify-center overflow-hidden">
+                        <div class="w-2 h-32 bg-gradient-to-b from-blue-400 to-blue-900 rounded-full shadow-[0_0_20px_rgba(59,130,246,0.5)] rotate-45"></div>
+                    </div>
+                    <h3 class="text-xl font-bold">عصا النيون الزرقاء</h3>
+                    <p class="text-slate-500 text-sm mb-4">قوة: 85 | دقة: 90</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gold font-bold">5,000 <i data-lucide="coins" class="inline w-4 h-4"></i></span>
+                        <button class="bg-white/10 hover:bg-gold hover:text-dark px-4 py-1 rounded-full font-bold transition-all text-sm">شراء</button>
+                    </div>
+                </div>
+                <div class="item-card border-gold/50 bg-gold/5">
+                    <div class="h-40 bg-slate-900/50 rounded-2xl mb-4 flex items-center justify-center overflow-hidden">
+                        <div class="w-2 h-32 bg-gradient-to-b from-gold to-amber-900 rounded-full shadow-[0_0_20px_rgba(197,160,33,0.5)] rotate-45"></div>
+                    </div>
+                    <h3 class="text-xl font-bold text-gold">عصا الفرعون الذهبية</h3>
+                    <p class="text-slate-400 text-sm mb-4">قوة: 100 | دقة: 100</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-white font-bold italic">مملوكة</span>
+                        <i data-lucide="check-circle" class="text-gold"></i>
+                    </div>
+                </div>
+            </div>
+            <!-- Currencies -->
+            <div class="space-y-6">
+                <div class="glass-panel p-6 rounded-3xl bg-gradient-to-br from-gold/20 to-transparent border-gold/30">
+                    <h4 class="text-xl font-black mb-4">أفضل العروض</h4>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center p-3 bg-white/5 rounded-xl">
+                            <span>10,000 قطعة</span>
+                            <button class="btn-primary py-2 px-4 text-sm">$4.99</button>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-white/5 rounded-xl">
+                            <span>50 جوهرة</span>
+                            <button class="btn-primary py-2 px-4 text-sm">$1.99</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Layout -->
-    <div class="min-h-screen flex flex-col">
+<!-- Modal: Lucky Wheel -->
+<div id="wheel-modal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden flex items-center justify-center p-6 text-center">
+    <div class="glass-panel w-full max-w-2xl rounded-[3rem] p-16 relative overflow-hidden">
+        <button onclick="closeModal('wheel-modal')" class="absolute top-8 left-8 text-slate-400 hover:text-white"><i data-lucide="x" class="w-8 h-8"></i></button>
+        <h2 class="text-5xl font-black mb-12 font-display text-white italic tracking-tighter">LUCKY SPIN</h2>
         
-        <!-- Navbar -->
-        <nav class="p-6 flex justify-between items-center glass-panel sticky top-0 z-40">
-            <div class="flex items-center gap-4">
-                <div class="bg-gold-600 p-2 rounded-xl text-black">
-                    <i data-lucide="award"></i>
-                </div>
-                <span class="text-2xl font-bold tracking-tight">رويال <span class="text-gold-500">بلياردو</span></span>
+        <div class="wheel-container mb-12">
+            <canvas id="luck-wheel"></canvas>
+            <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2 z-10">
+                <div class="w-0 h-0 border-l-[15px] border-l-transparent border-r-[15px] border-r-transparent border-t-[30px] border-t-gold"></div>
             </div>
-            
-            <div class="flex items-center gap-8">
-                <div class="hidden md:flex gap-6 text-sm font-semibold uppercase tracking-wider text-slate-400">
-                    <button onclick="toggleView('game')" class="hover:text-gold-500 transition-colors">الملعب</button>
-                    <button onclick="toggleView('shop')" class="hover:text-gold-500 transition-colors">المتجر</button>
-                    <button onclick="toggleView('missions')" class="hover:text-gold-500 transition-colors">المهمات</button>
-                    <button onclick="toggleView('reviews')" class="hover:text-gold-500 transition-colors">التقييم</button>
-                </div>
-                
-                <div class="flex items-center gap-4 bg-black/40 px-4 py-2 rounded-full border border-gold-500/20">
-                    <span id="userBalance" class="text-gold-400 font-bold">1000</span>
-                    <i data-lucide="coins" class="text-gold-500 w-5 h-5"></i>
-                </div>
-            </div>
-        </nav>
-
-        <!-- Main Content Areas -->
-        <main class="flex-grow relative">
-            
-            <!-- Game Container -->
-            <div id="gameView" class="view-container p-8 flex flex-col items-center justify-center">
-                <div class="mb-6 flex gap-8 items-center">
-                    <div class="text-center">
-                        <p class="text-xs text-slate-500 uppercase">القوة</p>
-                        <div class="w-32 h-2 bg-slate-800 rounded-full mt-1 overflow-hidden">
-                            <div id="powerBar" class="h-full bg-gold-500 transition-all duration-75" style="width: 0%"></div>
-                        </div>
-                    </div>
-                    <div class="text-center">
-                        <p class="text-xs text-slate-500 uppercase">الكرات المتبقية</p>
-                        <p id="ballsLeft" class="text-2xl font-bold text-gold-400">15</p>
-                    </div>
-                </div>
-
-                <div class="relative rounded-[2.5rem] overflow-hidden border-[12px] border-amber-900 shadow-2xl bg-slate-900">
-                    <canvas id="gameCanvas" width="800" height="400"></canvas>
-                </div>
-
-                <div class="mt-8 flex gap-4">
-                    <button onclick="resetGame()" class="bg-white/5 px-6 py-2 rounded-lg hover:bg-white/10 flex items-center gap-2">
-                        <i data-lucide="refresh-cw" class="w-4 h-4"></i> إعادة الطاولة
-                    </button>
-                    <button class="bg-white/5 px-6 py-2 rounded-lg hover:bg-white/10 flex items-center gap-2">
-                        <i data-lucide="users" class="w-4 h-4"></i> لاعب ضد لاعب (محلي)
-                    </button>
-                </div>
-            </div>
-
-            <!-- Shop View -->
-            <div id="shopView" class="view-container hidden p-12 max-w-6xl mx-auto space-y-12">
-                <div class="text-center space-y-2">
-                    <h2 class="text-4xl font-bold gold-gradient italic">المتجر الملكي</h2>
-                    <p class="text-slate-500">استثمر ذهبك لترقية معداتك</p>
-                </div>
-                
-                <div class="grid md:grid-cols-3 gap-8">
-                    <!-- Shop Item 1 -->
-                    <div class="glass-panel p-6 rounded-[2rem] space-y-6 hover:premium-border transition-all">
-                        <div class="aspect-video bg-gradient-to-br from-slate-800 to-black rounded-2xl flex items-center justify-center">
-                            <i data-lucide="wand-2" class="w-16 h-16 text-gold-500"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-xl font-bold">عصا "النور"</h3>
-                            <p class="text-sm text-slate-500">تزيد من دقة التصويب بنسبة 15%</p>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-xl font-bold text-gold-400">500 <i data-lucide="coins" class="inline w-4 h-4"></i></span>
-                            <button onclick="buyItem('stick_light', 500)" class="bg-gold-600 px-6 py-2 rounded-xl text-black font-bold text-sm">شراء</button>
-                        </div>
-                    </div>
-                    <!-- Shop Item 2 -->
-                    <div class="glass-panel p-6 rounded-[2rem] space-y-6 hover:premium-border transition-all">
-                        <div class="aspect-video bg-gradient-to-br from-emerald-900 to-black rounded-2xl flex items-center justify-center">
-                            <i data-lucide="layout" class="w-16 h-16 text-emerald-400"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-xl font-bold">طاولة "الزمرد"</h3>
-                            <p class="text-sm text-slate-500">ملمس حريري لتدحرج أسرع</p>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-xl font-bold text-gold-400">1200 <i data-lucide="coins" class="inline w-4 h-4"></i></span>
-                            <button onclick="buyItem('table_emerald', 1200)" class="bg-gold-600 px-6 py-2 rounded-xl text-black font-bold text-sm">شراء</button>
-                        </div>
-                    </div>
-                    <!-- Shop Item 3 -->
-                    <div class="glass-panel p-6 rounded-[2rem] space-y-6 hover:premium-border transition-all">
-                        <div class="aspect-video bg-gradient-to-br from-red-900 to-black rounded-2xl flex items-center justify-center">
-                            <i data-lucide="zap" class="w-16 h-16 text-red-500"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-xl font-bold">عصا "التنين"</h3>
-                            <p class="text-sm text-slate-500">قوة كسر مرعبة وتأثير دوران عالي</p>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-xl font-bold text-gold-400">2500 <i data-lucide="coins" class="inline w-4 h-4"></i></span>
-                            <button onclick="buyItem('stick_dragon', 2500)" class="bg-gold-600 px-6 py-2 rounded-xl text-black font-bold text-sm">شراء</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Missions View -->
-            <div id="missionsView" class="view-container hidden p-12 max-w-4xl mx-auto space-y-12">
-                <div class="text-center space-y-2">
-                    <h2 class="text-4xl font-bold gold-gradient italic">مهمات اليوم</h2>
-                    <p class="text-slate-500">أظهر مهارتك واكسب المكافآت</p>
-                </div>
-                
-                <div class="space-y-4">
-                    <div class="glass-panel p-8 rounded-3xl flex justify-between items-center">
-                        <div class="flex gap-6 items-center">
-                            <div class="w-12 h-12 bg-gold-500/20 rounded-2xl flex items-center justify-center text-gold-500">
-                                <i data-lucide="target"></i>
-                            </div>
-                            <div>
-                                <h4 class="text-lg font-bold">القناص المحترف</h4>
-                                <p class="text-sm text-slate-500">ادخل 5 كرات في جولة واحدة</p>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-gold-400 font-bold">+200 ذهبية</p>
-                            <span class="text-xs bg-slate-800 px-2 py-1 rounded">0 / 5</span>
-                        </div>
-                    </div>
-                    <div class="glass-panel p-8 rounded-3xl flex justify-between items-center opacity-70">
-                        <div class="flex gap-6 items-center">
-                            <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center">
-                                <i data-lucide="lock"></i>
-                            </div>
-                            <div>
-                                <h4 class="text-lg font-bold">ملك الطاولة</h4>
-                                <p class="text-sm text-slate-500">فز بـ 3 مباريات أونلاين</p>
-                            </div>
-                        </div>
-                        <p class="text-slate-400">قريباً</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Reviews View -->
-            <div id="reviewsView" class="view-container hidden p-12 max-w-4xl mx-auto space-y-12">
-                 <div class="text-center">
-                    <h2 class="text-4xl font-bold mb-4">قيم تجربتك</h2>
-                    <div class="flex justify-center gap-2 mb-8">
-                        <button onclick="setRating(1)" class="star-btn transition-colors hover:text-gold-500"><i data-lucide="star" class="w-10 h-10"></i></button>
-                        <button onclick="setRating(2)" class="star-btn transition-colors hover:text-gold-500"><i data-lucide="star" class="w-10 h-10"></i></button>
-                        <button onclick="setRating(3)" class="star-btn transition-colors hover:text-gold-500"><i data-lucide="star" class="w-10 h-10"></i></button>
-                        <button onclick="setRating(4)" class="star-btn transition-colors hover:text-gold-500"><i data-lucide="star" class="w-10 h-10"></i></button>
-                        <button onclick="setRating(5)" class="star-btn transition-colors hover:text-gold-500"><i data-lucide="star" class="w-10 h-10"></i></button>
-                    </div>
-                    <textarea id="reviewText" placeholder="اكتب رأيك هنا..." class="w-full bg-white/5 border border-white/10 rounded-3xl p-6 outline-none focus:border-gold-500 mb-6" rows="4"></textarea>
-                    <button onclick="submitReview()" class="btn-gold">ارسال التقييم</button>
-                </div>
-            </div>
-
-        </main>
-
-        <!-- Footer -->
-        <footer class="p-8 glass-panel border-t-0 text-center">
-            <p class="text-slate-500 text-sm">تم التطوير بلمسة ملكية &copy; 2024. رويال بلياردو - حيث تبدأ الأساطير.</p>
-        </footer>
-    </div>
-
-    <!-- Notification Toast -->
-    <div id="toast" class="fixed bottom-10 left-10 transform -translate-x-1/2 md:translate-x-0 hidden transition-all duration-300 z-50">
-        <div class="bg-gold-600 text-black px-8 py-4 rounded-2xl font-bold shadow-2xl flex items-center gap-3">
-            <i data-lucide="check-circle" class="w-6 h-6"></i>
-            <span id="toastMessage">عملية ناجحة!</span>
         </div>
+
+        <button id="spin-btn" onclick="spinWheel()" class="btn-primary text-2xl px-16 py-5 animate-pulse-gold">دوران الحظ مجاناً!</button>
     </div>
+</div>
 
-    <script>
-        // --- GAME ENGINE ---
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        
-        let balls = [];
-        const ballRadius = 10;
-        const friction = 0.985;
-        let cueBall = null;
-        let isShooting = false;
-        let power = 0;
-        let maxPower = 30;
-        let mouseX = 0;
-        let mouseY = 0;
-        let isDragging = false;
-        let gold = 1000;
-        let ballsPotCount = 0;
+<!-- Notification: Mission Complete -->
+<div id="mission-toast" class="fixed bottom-10 left-10 z-[60] flex items-center gap-6 glass-panel p-6 rounded-[2rem] border-gold/50 translate-y-[200%] transition-transform duration-500">
+    <div class="w-16 h-16 bg-gold text-dark rounded-2xl flex items-center justify-center animate-bounce">
+        <i data-lucide="trophy" class="w-10 h-10"></i>
+    </div>
+    <div>
+        <h4 class="text-xl font-black text-gold">تم إنجاز المهمة!</h4>
+        <p id="mission-text" class="text-slate-400">أدخلت 3 كرات بضربة واحدة</p>
+        <p class="text-white font-bold mt-1">+500 قطعة ذهبية</p>
+    </div>
+</div>
 
-        class Ball {
-            constructor(x, y, color, number = 0) {
-                this.x = x;
-                this.y = y;
-                this.vx = 0;
-                this.vy = 0;
-                this.radius = ballRadius;
-                this.color = color;
-                this.number = number;
-                this.inPocket = false;
+<script>
+    // --- CONFIG & STATE ---
+    const BALL_RADIUS = 15;
+    const FRICTION = 0.985;
+    const WALL_BOUNCE = 0.7;
+    const TABLE_WIDTH = 900;
+    const TABLE_HEIGHT = 450;
+    
+    let coins = 2500;
+    let gems = 45;
+    let level = 12;
+    let balls = [];
+    let cueBall = null;
+    let cueStick = { angle: 0, power: 0, length: 300, isDragging: false };
+    let isMoving = false;
+    let p1Turn = true;
+
+    const canvas = document.getElementById('pool-canvas');
+    const ctx = canvas.getContext('2d');
+
+    // --- CORE PHYSICS & ENGINE ---
+    class Ball {
+        constructor(x, y, color, number = 0) {
+            this.x = x;
+            this.y = y;
+            this.vx = 0;
+            this.vy = 0;
+            this.color = color;
+            this.number = number;
+            this.radius = BALL_RADIUS;
+            this.inPocket = false;
+        }
+
+        draw() {
+            if (this.inPocket) return;
+            
+            // Shadow
+            ctx.beginPath();
+            ctx.arc(this.x + 4, this.y + 4, this.radius, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.fill();
+
+            // Ball
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            let grad = ctx.createRadialGradient(this.x - 5, this.y - 5, 2, this.x, this.y, this.radius);
+            grad.addColorStop(0, '#fff');
+            grad.addColorStop(0.2, this.color);
+            grad.addColorStop(1, '#000');
+            ctx.fillStyle = grad;
+            ctx.fill();
+
+            // Number
+            if (this.number !== 0) {
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 12px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(this.number, this.x, this.y + 4);
+            }
+        }
+
+        update() {
+            if (this.inPocket) return;
+
+            this.x += this.vx;
+            this.y += this.vy;
+            this.vx *= FRICTION;
+            this.vy *= FRICTION;
+
+            if (Math.abs(this.vx) < 0.1) this.vx = 0;
+            if (Math.abs(this.vy) < 0.1) this.vy = 0;
+
+            // Wall Collision
+            if (this.x - this.radius < 0 || this.x + this.radius > TABLE_WIDTH) {
+                this.vx *= -WALL_BOUNCE;
+                this.x = this.x < this.radius ? this.radius : TABLE_WIDTH - this.radius;
+            }
+            if (this.y - this.radius < 0 || this.y + this.radius > TABLE_HEIGHT) {
+                this.vy *= -WALL_BOUNCE;
+                this.y = this.y < this.radius ? this.radius : TABLE_HEIGHT - this.radius;
             }
 
-            draw() {
-                if (this.inPocket) return;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = this.color;
-                ctx.fill();
-                
-                // Shine
-                ctx.beginPath();
-                ctx.arc(this.x - 3, this.y - 3, 2, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(255,255,255,0.4)';
-                ctx.fill();
-                
-                if (this.number > 0) {
-                    ctx.fillStyle = 'white';
-                    ctx.font = '10px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(this.number, this.x, this.y + 4);
-                }
-                ctx.closePath();
-            }
-
-            update() {
-                if (this.inPocket) return;
-                
-                this.x += this.vx;
-                this.y += this.vy;
-                this.vx *= friction;
-                this.vy *= friction;
-
-                if (Math.abs(this.vx) < 0.1) this.vx = 0;
-                if (Math.abs(this.vy) < 0.1) this.vy = 0;
-
-                // Wall collisions
-                if (this.x - this.radius < 0 || this.x + this.radius > canvas.width) {
-                    this.vx *= -1;
-                    this.x = this.x < canvas.width / 2 ? this.radius : canvas.width - this.radius;
-                }
-                if (this.y - this.radius < 0 || this.y + this.radius > canvas.height) {
-                    this.vy *= -1;
-                    this.y = this.y < canvas.height / 2 ? this.radius : canvas.height - this.radius;
-                }
-
-                // Pocket detection
-                const pockets = [[0,0], [canvas.width/2, 0], [canvas.width, 0], [0, canvas.height], [canvas.width/2, canvas.height], [canvas.width, canvas.height]];
-                pockets.forEach(p => {
-                    const dist = Math.hypot(this.x - p[0], this.y - p[1]);
-                    if (dist < 25) {
-                        this.pot();
-                    }
-                });
-            }
-
-            pot() {
-                if (this === cueBall) {
-                    this.x = 200;
-                    this.y = 200;
+            // Pocket Check
+            const pockets = [
+                {x: 0, y: 0}, {x: TABLE_WIDTH/2, y: 0}, {x: TABLE_WIDTH, y: 0},
+                {x: 0, y: TABLE_HEIGHT}, {x: TABLE_WIDTH/2, y: TABLE_HEIGHT}, {x: TABLE_WIDTH, y: TABLE_HEIGHT}
+            ];
+            pockets.forEach(p => {
+                const dist = Math.hypot(this.x - p.x, this.y - p.y);
+                if (dist < 35) {
+                    this.inPocket = true;
                     this.vx = 0;
                     this.vy = 0;
-                    showToast("خطأ! الكرة البيضاء غرقت!");
-                    return;
+                    if (this.number === 0) resetCueBall(); // Scratched
                 }
-                this.inPocket = true;
-                this.vx = 0;
-                this.vy = 0;
-                ballsPotCount++;
-                document.getElementById('ballsLeft').innerText = 15 - ballsPotCount;
-                gold += 50;
-                updateBalanceDisplay();
-                showToast("رائعة! +50 ذهبية");
-            }
-        }
-
-        function initGame() {
-            balls = [];
-            // Create Cue Ball
-            cueBall = new Ball(200, 200, 'white');
-            balls.push(cueBall);
-
-            // Create Triangle
-            const startX = 550;
-            const startY = 200;
-            let count = 1;
-            for (let i = 0; i < 5; i++) {
-                for (let j = 0; j <= i; j++) {
-                    const color = count === 8 ? 'black' : (count % 2 === 0 ? '#ca8a04' : '#ef4444');
-                    balls.push(new Ball(startX + i * 18, startY + (j * 22) - (i * 11), color, count));
-                    count++;
-                }
-            }
-            ballsPotCount = 0;
-            updateBalanceDisplay();
-        }
-
-        function checkCollisions() {
-            for (let i = 0; i < balls.length; i++) {
-                for (let j = i + 1; j < balls.length; j++) {
-                    const b1 = balls[i];
-                    const b2 = balls[j];
-                    if (b1.inPocket || b2.inPocket) continue;
-
-                    const dx = b2.x - b1.x;
-                    const dy = b2.y - b1.y;
-                    const distance = Math.hypot(dx, dy);
-
-                    if (distance < b1.radius + b2.radius) {
-                        // Resolve collision overlap
-                        const overlap = b1.radius + b2.radius - distance;
-                        const nx = dx / distance;
-                        const ny = dy / distance;
-                        b1.x -= nx * overlap / 2;
-                        b1.y -= ny * overlap / 2;
-                        b2.x += nx * overlap / 2;
-                        b2.y += ny * overlap / 2;
-
-                        // Normal velocity
-                        const v1n = b1.vx * nx + b1.vy * ny;
-                        const v2n = b2.vx * nx + b2.vy * ny;
-
-                        // Simple elastic collision
-                        const vDiff = v1n - v2n;
-                        b1.vx -= vDiff * nx;
-                        b1.vy -= vDiff * ny;
-                        b2.vx += vDiff * nx;
-                        b2.vy += vDiff * ny;
-                    }
-                }
-            }
-        }
-
-        function gameLoop() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Draw Table Cloth
-            ctx.fillStyle = '#065f46';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Draw Pockets
-            ctx.fillStyle = '#111';
-            const pocketPos = [[0,0], [canvas.width/2, 0], [canvas.width, 0], [0, canvas.height], [canvas.width/2, canvas.height], [canvas.width, canvas.height]];
-            pocketPos.forEach(p => {
-                ctx.beginPath();
-                ctx.arc(p[0], p[1], 25, 0, Math.PI * 2);
-                ctx.fill();
             });
-
-            balls.forEach(b => {
-                b.update();
-                b.draw();
-            });
-
-            checkCollisions();
-
-            // Draw Cue
-            const allStopped = balls.every(b => Math.abs(b.vx) < 0.1 && Math.abs(b.vy) < 0.1);
-            if (allStopped && !isShooting) {
-                drawCue();
-            }
-
-            requestAnimationFrame(gameLoop);
         }
+    }
 
-        function drawCue() {
-            const dx = cueBall.x - mouseX;
-            const dy = cueBall.y - mouseY;
-            const angle = Math.atan2(dy, dx);
-            
-            // Aiming line
-            ctx.setLineDash([5, 5]);
-            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+    function initBalls() {
+        balls = [];
+        cueBall = new Ball(200, TABLE_HEIGHT / 2, '#fff', 0);
+        balls.push(cueBall);
+
+        // Triangle Rack
+        const startX = 650;
+        const startY = TABLE_HEIGHT / 2;
+        let counter = 1;
+        const colors = ['#facc15', '#ef4444', '#3b82f6', '#8b5cf6', '#f97316', '#10b981', '#78350f', '#000'];
+
+        for (let row = 0; row < 5; row++) {
+            for (let col = 0; col <= row; col++) {
+                const x = startX + row * (BALL_RADIUS * 1.8);
+                const y = startY - (row * BALL_RADIUS) + (col * BALL_RADIUS * 2.1);
+                const color = counter === 5 ? '#000' : colors[counter % colors.length];
+                balls.push(new Ball(x, y, color, counter++));
+            }
+        }
+    }
+
+    function resolveCollisions() {
+        for (let i = 0; i < balls.length; i++) {
+            for (let j = i + 1; j < balls.length; j++) {
+                const b1 = balls[i];
+                const b2 = balls[j];
+                if (b1.inPocket || b2.inPocket) continue;
+
+                const dx = b2.x - b1.x;
+                const dy = b2.y - b1.y;
+                const distance = Math.hypot(dx, dy);
+
+                if (distance < b1.radius + b2.radius) {
+                    // Dynamic collision response
+                    const angle = Math.atan2(dy, dx);
+                    const sin = Math.sin(angle);
+                    const cos = Math.cos(angle);
+
+                    // Ball relative positions
+                    const x1 = 0, y1 = 0;
+                    const x2 = dx * cos + dy * sin;
+                    const y2 = dy * cos - dx * sin;
+
+                    // Rotate velocities
+                    const vx1 = b1.vx * cos + b1.vy * sin;
+                    const vy1 = b1.vy * cos - b1.vx * sin;
+                    const vx2 = b2.vx * cos + b2.vy * sin;
+                    const vy2 = b2.vy * cos - b2.vx * sin;
+
+                    // Collision reaction
+                    const vx1Final = vx2;
+                    const vx2Final = vx1;
+
+                    b1.vx = vx1Final * cos - vy1 * sin;
+                    b1.vy = vy1 * cos + vx1Final * sin;
+                    b2.vx = vx2Final * cos - vy2 * sin;
+                    b2.vy = vy2 * cos + vx2Final * sin;
+
+                    // Prevent overlap
+                    const overlap = (b1.radius + b2.radius - distance) / 2;
+                    b1.x -= overlap * Math.cos(angle);
+                    b1.y -= overlap * Math.sin(angle);
+                    b2.x += overlap * Math.cos(angle);
+                    b2.y += overlap * Math.sin(angle);
+                }
+            }
+        }
+    }
+
+    function resetCueBall() {
+        setTimeout(() => {
+            cueBall.inPocket = false;
+            cueBall.x = 200;
+            cueBall.y = TABLE_HEIGHT / 2;
+            cueBall.vx = 0;
+            cueBall.vy = 0;
+        }, 1000);
+    }
+
+    // --- GAME LOOP ---
+    function render() {
+        ctx.clearRect(0, 0, TABLE_WIDTH, TABLE_HEIGHT);
+        
+        // Draw Pockets
+        ctx.fillStyle = '#051810';
+        const pockets = [
+            {x: 0, y: 0}, {x: TABLE_WIDTH/2, y: 0}, {x: TABLE_WIDTH, y: 0},
+            {x: 0, y: TABLE_HEIGHT}, {x: TABLE_WIDTH/2, y: TABLE_HEIGHT}, {x: TABLE_WIDTH, y: TABLE_HEIGHT}
+        ];
+        pockets.forEach(p => {
             ctx.beginPath();
-            ctx.moveTo(cueBall.x, cueBall.y);
-            ctx.lineTo(cueBall.x + Math.cos(angle) * 200, cueBall.y + Math.sin(angle) * 200);
-            ctx.stroke();
-            ctx.setLineDash([]);
-
-            // Cue Stick
-            const cueDist = 20 + (isDragging ? power * 2 : 0);
-            ctx.save();
-            ctx.translate(cueBall.x, cueBall.y);
-            ctx.rotate(angle);
-            
-            const gradient = ctx.createLinearGradient(-cueDist - 200, -3, -cueDist, 3);
-            gradient.addColorStop(0, '#451a03');
-            gradient.addColorStop(0.8, '#78350f');
-            gradient.addColorStop(1, '#ca8a04');
-            
-            ctx.fillStyle = gradient;
-            ctx.fillRect(-cueDist - 200, -3, 200, 6);
-            ctx.restore();
-        }
-
-        // --- INTERACTION ---
-        canvas.addEventListener('mousedown', (e) => {
-            const allStopped = balls.every(b => Math.abs(b.vx) < 0.1 && Math.abs(b.vy) < 0.1);
-            if (allStopped) isDragging = true;
+            ctx.arc(p.x, p.y, 30, 0, Math.PI * 2);
+            ctx.fill();
         });
 
-        window.addEventListener('mousemove', (e) => {
+        // Update Balls
+        let moving = false;
+        balls.forEach(b => {
+            b.update();
+            b.draw();
+            if (Math.abs(b.vx) > 0 || Math.abs(b.vy) > 0) moving = true;
+        });
+        isMoving = moving;
+
+        resolveCollisions();
+
+        // Draw Cue / Aim Line
+        if (!isMoving && !cueStick.isDragging) {
+            drawCue();
+        }
+
+        requestAnimationFrame(render);
+    }
+
+    function drawCue() {
+        // Aim Line
+        ctx.setLineDash([10, 10]);
+        ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+        ctx.beginPath();
+        ctx.moveTo(cueBall.x, cueBall.y);
+        const lineX = cueBall.x + Math.cos(cueStick.angle) * 800;
+        const lineY = cueBall.y + Math.sin(cueStick.angle) * 800;
+        ctx.lineTo(lineX, lineY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Cue Stick
+        ctx.save();
+        ctx.translate(cueBall.x, cueBall.y);
+        ctx.rotate(cueStick.angle);
+        const offset = 20 + cueStick.power;
+        
+        // Stick Body
+        let cueGrad = ctx.createLinearGradient(-offset - 400, 0, -offset, 0);
+        cueGrad.addColorStop(0, '#1a1a1a');
+        cueGrad.addColorStop(0.5, '#4b3621');
+        cueGrad.addColorStop(0.95, '#e5e5e5');
+        cueGrad.addColorStop(1, '#fff');
+
+        ctx.fillStyle = cueGrad;
+        ctx.fillRect(-offset - 400, -4, 400, 8);
+        ctx.restore();
+    }
+
+    // --- USER INTERACTION ---
+    function handleInput() {
+        canvas.addEventListener('mousemove', (e) => {
+            if (isMoving) return;
             const rect = canvas.getBoundingClientRect();
-            mouseX = e.clientX - rect.left;
-            mouseY = e.clientY - rect.top;
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
             
-            if (isDragging) {
-                const dist = Math.hypot(cueBall.x - mouseX, cueBall.y - mouseY);
-                power = Math.min(maxPower, dist / 5);
-                document.getElementById('powerBar').style.width = (power / maxPower * 100) + '%';
+            if (cueStick.isDragging) {
+                const dist = Math.hypot(mouseX - cueBall.x, mouseY - cueBall.y);
+                cueStick.power = Math.min(Math.max(dist / 2, 0), 100);
+                document.getElementById('power-indicator').classList.remove('hidden');
+                document.getElementById('power-level').style.height = cueStick.power + '%';
+            } else {
+                cueStick.angle = Math.atan2(mouseY - cueBall.y, mouseX - cueBall.x) + Math.PI;
             }
+        });
+
+        canvas.addEventListener('mousedown', () => {
+            if (!isMoving) cueStick.isDragging = true;
         });
 
         window.addEventListener('mouseup', () => {
-            if (isDragging) {
-                const dx = cueBall.x - mouseX;
-                const dy = cueBall.y - mouseY;
-                const angle = Math.atan2(dy, dx);
+            if (cueStick.isDragging) {
+                const shotX = Math.cos(cueStick.angle) * (cueStick.power / 4);
+                const shotY = Math.sin(cueStick.angle) * (cueStick.power / 4);
+                cueBall.vx = shotX;
+                cueBall.vy = shotY;
                 
-                cueBall.vx = Math.cos(angle) * power;
-                cueBall.vy = Math.sin(angle) * power;
+                cueStick.isDragging = false;
+                cueStick.power = 0;
+                document.getElementById('power-indicator').classList.add('hidden');
                 
-                isDragging = false;
-                power = 0;
-                document.getElementById('powerBar').style.width = '0%';
+                p1Turn = !p1Turn; // Swap
+                showTurn();
             }
         });
+    }
 
-        // --- UI LOGIC ---
-        function startGame() {
-            document.getElementById('gameOverlay').classList.add('opacity-0', 'pointer-events-none');
-            initGame();
-            gameLoop();
-        }
+    function showTurn() {
+        const turnEl = document.getElementById('turn-indicator');
+        turnEl.style.opacity = '1';
+        setTimeout(() => turnEl.style.opacity = '0', 2000);
+    }
 
-        function toggleView(view) {
-            document.querySelectorAll('.view-container').forEach(v => v.classList.add('hidden'));
-            document.getElementById(view + 'View').classList.remove('hidden');
-            document.getElementById('gameOverlay').classList.add('opacity-0', 'pointer-events-none');
-        }
+    // --- WHEEL OF FORTUNE ---
+    const wheelCanvas = document.getElementById('luck-wheel');
+    const wheelCtx = wheelCanvas.getContext('2d');
+    let wheelAngle = 0;
 
-        function buyItem(id, price) {
-            if (gold >= price) {
-                gold -= price;
-                updateBalanceDisplay();
-                showToast("تم الشراء بنجاح! شكراً لاختيارك رويال.");
-            } else {
-                showToast("عذراً، ذهبك لا يكفي لهذه الرفاهية.");
-            }
-        }
+    function drawWheel() {
+        const segments = ["1,000 قطعة", "20 جوهرة", "عصا نادرة", "500 قطعة", "10 جواهر", "حظ أوفر"];
+        const colors = ["#C5A021", "#151C2C", "#C5A021", "#151C2C", "#C5A021", "#151C2C"];
+        const step = (Math.PI * 2) / segments.length;
 
-        function updateBalanceDisplay() {
-            document.getElementById('userBalance').innerText = gold;
-        }
+        wheelCanvas.width = 256;
+        wheelCanvas.height = 256;
 
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastMessage').innerText = msg;
-            toast.classList.remove('hidden', 'translate-y-full');
-            setTimeout(() => {
-                toast.classList.add('translate-y-full');
-                setTimeout(() => toast.classList.add('hidden'), 300);
-            }, 3000);
-        }
+        segments.forEach((s, i) => {
+            wheelCtx.beginPath();
+            wheelCtx.fillStyle = colors[i];
+            wheelCtx.moveTo(128, 128);
+            wheelCtx.arc(128, 128, 120, i * step, (i + 1) * step);
+            wheelCtx.fill();
+            wheelCtx.save();
+            wheelCtx.translate(128, 128);
+            wheelCtx.rotate(i * step + step/2);
+            wheelCtx.fillStyle = "white";
+            wheelCtx.font = "bold 12px sans-serif";
+            wheelCtx.fillText(s, 50, 0);
+            wheelCtx.restore();
+        });
+    }
 
-        function resetGame() {
-            initGame();
-            showToast("تم تنظيف الطاولة. ابدأ من جديد!");
-        }
+    function spinWheel() {
+        const btn = document.getElementById('spin-btn');
+        btn.disabled = true;
+        btn.innerText = "دوران...";
+        
+        const randomSpin = 1800 + Math.random() * 1000;
+        const container = document.querySelector('.wheel-container');
+        container.style.transition = 'transform 4s cubic-bezier(0.15, 0, 0.15, 1)';
+        container.style.transform = `rotate(${randomSpin}deg)`;
 
-        function setRating(n) {
-            const stars = document.querySelectorAll('.star-btn');
-            stars.forEach((s, idx) => {
-                if (idx < n) s.classList.add('text-gold-500');
-                else s.classList.remove('text-gold-500');
-            });
-        }
+        setTimeout(() => {
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#C5A021', '#ffffff'] });
+            btn.innerText = "لقد فزت بمكافأة!";
+            setTimeout(() => closeModal('wheel-modal'), 2000);
+        }, 4100);
+    }
 
-        function submitReview() {
-            const text = document.getElementById('reviewText').value;
-            if (text.length < 5) return showToast("يرجى كتابة رأيك بوضوح");
-            showToast("شكراً لتقييمك الراقي!");
-            document.getElementById('reviewText').value = '';
-            setRating(0);
-        }
+    // --- MODALS & UI FUNCTIONS ---
+    function openStore() { document.getElementById('store-modal').classList.remove('hidden'); }
+    function openLuckyWheel() { 
+        document.getElementById('wheel-modal').classList.remove('hidden'); 
+        drawWheel();
+    }
+    function openVault() { alert("الخزنة: تحتوي حالياً على 10,240 قطعة ذهبية. أكمل 5 ألعاب لفتحها!"); }
+    function openMissions() {
+        const missions = ["أدخل 3 كرات متتالية", "استخدم عصا الفرعون للفوز", "اربح مباراة في أقل من 5 دقائق"];
+        alert("المهمات الحالية:\n" + missions.join('\n'));
+    }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-        // --- INIT ---
+    // --- INITIALIZATION ---
+    window.onload = () => {
         lucide.createIcons();
-    </script>
-</body>
-</html>
+        canvas.width = TABLE_WIDTH;
+        canvas.height = TABLE_HEIGHT;
+        
+        initBalls();
+        handleInput();
+        render();
+
+        setTimeout(() => {
+            document.getElementById('loader').style.opacity = '0';
+            setTimeout(() => document.getElementById('loader').remove(), 1000);
+        }, 2000);
+
+        // Periodically check for missions (mock)
+        setInterval(() => {
+            if (Math.random() > 0.95) {
+                const toast = document.getElementById('mission-toast');
+                toast.classList.remove('translate-y-[200%]');
+                setTimeout(() => toast.classList.add('translate-y-[200%]'), 4000);
+            }
+        }, 10000);
+    };
+</script>
