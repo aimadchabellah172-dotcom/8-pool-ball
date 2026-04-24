@@ -255,7 +255,7 @@
         const HOLE_RADIUS = 35;
         const CUSHION_SIZE = 22;
         const FRICTION = 0.988;
-        const SUBSTEPS = 14; 
+        const SUBSTEPS = 10; // Optimized for performance while keeping precision
 
         let canvas, ctx;
         let balls = [];
@@ -263,6 +263,7 @@
         let cue = { x: 0, y: 0, angle: 0, power: 0, charging: false };
         let gameState = 'LOBBY';
         let inventory = { coins: 24500, ownedCues: ['cue-0'], currentCue: 'cue-0' };
+        let anyMoving = true;
 
         // --- CORE PHYSICS ---
         class Vector {
@@ -501,30 +502,38 @@
         }
 
         function loop() {
+            // Background rendering
             let tGrad = ctx.createRadialGradient(TABLE_WIDTH/2, TABLE_HEIGHT/2, 20, TABLE_WIDTH/2, TABLE_HEIGHT/2, 800);
             tGrad.addColorStop(0, '#1d4d31');
             tGrad.addColorStop(1, '#05120a');
             ctx.fillStyle = tGrad;
             ctx.fillRect(0,0, TABLE_WIDTH, TABLE_HEIGHT);
+            
+            // Drawing rails/cushions
             ctx.fillStyle = 'rgba(0,0,0,0.4)';
             ctx.fillRect(0, 0, TABLE_WIDTH, 22);
             ctx.fillRect(0, TABLE_HEIGHT-22, TABLE_WIDTH, 22);
             ctx.fillRect(0, 0, 22, TABLE_HEIGHT);
             ctx.fillRect(TABLE_WIDTH-22, 0, 22, TABLE_HEIGHT);
             
-            // Gold edge highlight reflect
             ctx.strokeStyle = 'rgba(212, 175, 55, 0.15)';
             ctx.lineWidth = 4;
             ctx.strokeRect(22, 22, TABLE_WIDTH-44, TABLE_HEIGHT-44);
 
-            for(let s=0; s<SUBSTEPS; s++) {
-                let dt = (1/60) / SUBSTEPS;
-                balls.forEach(b => b.update(dt));
-                resolveCollisions();
+            // Optimization: Only run physics if balls are moving
+            anyMoving = balls.some(b => !b.inPocket && b.vel.mag() > 0.1);
+
+            if(anyMoving) {
+                for(let s=0; s<SUBSTEPS; s++) {
+                    let dt = (1/60) / SUBSTEPS;
+                    balls.forEach(b => b.update(dt));
+                    resolveCollisions();
+                }
             }
 
             balls.forEach(b => b.draw());
-            if(gameState === 'PLAYING' && balls.every(b => b.vel.mag() < 0.1)) {
+            
+            if(gameState === 'PLAYING' && !anyMoving) {
                 drawAiming();
             }
             requestAnimationFrame(loop);
@@ -734,10 +743,19 @@
             if(id === 'modal-leaderboard') generateLeaderboard();
         }
 
-        function startGame() { 
+        function startGame(mode) { 
+            // Reset board for new game
+            setupBalls();
+            anyMoving = true;
+            
             gsap.to('#lobby-ui', { opacity: 0, scale: 0.9, duration: 0.4, onComplete: () => {
                 document.getElementById('lobby-ui').classList.add('hidden');
                 gameState = 'PLAYING';
+                
+                // Show notification
+                if(mode === 'local') {
+                    console.log("Local game started");
+                }
             }});
         }
 
