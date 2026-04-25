@@ -307,4 +307,38 @@ function update() {
     ctx.fillStyle = "#111";
     pockets.forEach(p => {
         ctx.beginPath();
-        ctx.arc(p.x,
+        ctx.arc(p.x, p.y, 25, 0, Math.PI * 2);
+        ctx.fill();
+    });
+
+    // رسم خط التصويب
+    if (isDragging) {
+        ctx.beginPath();
+        ctx.moveTo(balls[0].x, balls[0].y);
+        ctx.lineTo(mousePos.x, mousePos.y);
+        ctx.strokeStyle = "rgba(255,255,255,0.5)";
+        ctx.setLineDash([5, 5]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+    }
+
+    // تحديث الكرات
+    for (let i = 0; i < balls.length; i++) {
+        balls[i].update();
+        for (let j = i + 1; j < balls.length; j++) {
+            if (!balls[i].inPocket && !balls[j].inPocket) {
+                resolveCollision(balls[i], balls[j]);
+            }
+        }
+        balls[i].draw();
+    }
+
+    requestAnimationFrame(update);
+}
+
+initBalls();
+update();
+
+</script>
+</body>
+</html>
