@@ -2,56 +2,54 @@
 <html lang="ar">
 <head>
 <meta charset="UTF-8" />
-<title>لعبة بلياردو واقعية متقدمة</title>
+<title>محاكاة بلياردو احترافية</title>
 <style>
-body{margin:0;overflow:hidden;background:#0b2a22;font-family:Arial}
+body{margin:0;overflow:hidden;background:#0a1f18;font-family:Arial}
 canvas{display:block}
 #ui{
 position:fixed;top:10px;left:10px;
 background:rgba(0,0,0,0.6);
 color:#fff;
-padding:10px 12px;
+padding:10px;
 border-radius:10px;
 font-size:13px;
 }
 </style>
 </head>
 <body>
-<div id="ui">🎱 اسحب العصا لتحديد القوة والاتجاه | Aim Assist مفعّل</div>
+<div id="ui">🎱 بلياردو احترافي (فيزياء + سبن + تصادم واقعي)</div>
 <canvas id="c"></canvas>
 <script>
-const c=document.getElementById('c');
-const ctx=c.getContext('2d');
-c.width=innerWidth;c.height=innerHeight;
+const c=document.getElementById("c");
+const ctx=c.getContext("2d");
+c.width=innerWidth;
+c.height=innerHeight;
 
-// إعداد طاولة (منظور مشابه للألعاب الحديثة)
-const table={
-  x:150,
-  y:100,
-  w:innerWidth-300,
-  h:innerHeight-200
-};
-
+// ===== إعداد الطاولة =====
+const table={x:120,y:80,w:innerWidth-240,h:innerHeight-160};
 const BALL_R=12;
 const FRICTION=0.985;
 const REST=0.9;
+const MAX_SPEED=30;
 
+// ===== جيوب =====
 const pockets=[
-  {x:table.x,y:table.y},
-  {x:table.x+table.w/2,y:table.y},
-  {x:table.x+table.w,y:table.y},
-  {x:table.x,y:table.y+table.h},
-  {x:table.x+table.w/2,y:table.y+table.h},
-  {x:table.x+table.w,y:table.y+table.h}
+  {x:table.x,y:table.y},{x:table.x+table.w/2,y:table.y},{x:table.x+table.w,y:table.y},
+  {x:table.x,y:table.y+table.h},{x:table.x+table.w/2,y:table.y+table.h},{x:table.x+table.w,y:table.y+table.h}
 ];
 
+// ===== كرة =====
 class Ball{
   constructor(x,y,color,id){
     this.x=x;this.y=y;
     this.vx=0;this.vy=0;
+    this.r=BALL_R;
     this.color=color;
     this.id=id;
+    this.mass=1;
     this.inPocket=false;
+    this.spinX=0;
+    this.spinY=0;
   }
 
   draw(){
@@ -63,8 +61,8 @@ class Ball{
     ctx.arc(this.x+2,this.y+3,this.r,0,Math.PI*2);
     ctx.fill();
 
-    // كرة
-    let g=ctx.createRadialGradient(this.x-3,this.y-3,2,this.x,this.y,this.r);
+    // كرة (3D shading)
+    let g=ctx.createRadialGradient(this.x-4,this.y-4,2,this.x,this.y,this.r);
     g.addColorStop(0,"#fff");
     g.addColorStop(0.3,this.color);
     g.addColorStop(1,"#111");
@@ -85,19 +83,25 @@ class Ball{
   update(){
     if(this.inPocket) return;
 
+    // حركة
     this.x+=this.vx;
     this.y+=this.vy;
 
+    // احتكاك
     this.vx*=FRICTION;
     this.vy*=FRICTION;
 
+    // إيقاف صغير
+    if(Math.abs(this.vx)<0.02) this.vx=0;
+    if(Math.abs(this.vy)<0.02) this.vy=0;
+
     // حدود الطاولة
-    if(this.x<table.x+this.r){this.x=table.x+this.r;this.vx*=-REST;}
+    if(this.x<this.r+table.x){this.x=this.r+table.x;this.vx*=-REST;}
     if(this.x>table.x+table.w-this.r){this.x=table.x+table.w-this.r;this.vx*=-REST;}
-    if(this.y<table.y+this.r){this.y=table.y+this.r;this.vy*=-REST;}
+    if(this.y<this.r+table.y){this.y=this.r+table.y;this.vy*=-REST;}
     if(this.y>table.y+table.h-this.r){this.y=table.y+table.h-this.r;this.vy*=-REST;}
 
-    // الجيوب
+    // جيوب
     for(let p of pockets){
       if(Math.hypot(this.x-p.x,this.y-p.y)<18){
         this.inPocket=true;
@@ -107,24 +111,22 @@ class Ball{
   }
 }
 
+// ===== إنشاء الكرات =====
 let balls=[];
-
-// كرة الضرب
 let cue=new Ball(table.x+200,table.y+table.h/2,"#ffffff",0);
 balls.push(cue);
 
-// مثلث كرات
 let id=1;
 for(let i=0;i<5;i++){
   for(let j=0;j<=i;j++){
-    balls.push(new Ball(table.x+500+i*26,table.y+table.h/2+j*26-i*13,
+    balls.push(new Ball(table.x+520+i*26,table.y+table.h/2+j*26-i*13,
     `hsl(${id*28},90%,55%)`,id));
     id++;
   }
 }
 
+// ===== إدخال =====
 let mouse={x:0,y:0,down:false};
-
 c.onmousemove=e=>{mouse.x=e.clientX;mouse.y=e.clientY;};
 c.onmousedown=()=>mouse.down=true;
 c.onmouseup=()=>{
@@ -133,10 +135,13 @@ c.onmouseup=()=>{
   let dx=cue.x-mouse.x;
   let dy=cue.y-mouse.y;
 
-  cue.vx=dx*0.22;
-  cue.vy=dy*0.22;
+  let power=Math.min(Math.hypot(dx,dy),120);
+
+  cue.vx=(dx/power)*power*0.35;
+  cue.vy=(dy/power)*power*0.35;
 };
 
+// ===== تصادم فيزيائي احترافي =====
 function collide(a,b){
   if(a.inPocket||b.inPocket) return;
 
@@ -145,45 +150,40 @@ function collide(a,b){
   let dist=Math.hypot(dx,dy);
 
   if(dist<a.r+b.r){
-    let angle=Math.atan2(dy,dx);
-    let sin=Math.sin(angle);
-    let cos=Math.cos(angle);
+    let nx=dx/dist;
+    let ny=dy/dist;
 
-    let v1x=a.vx*cos+a.vy*sin;
-    let v1y=-a.vx*sin+a.vy*cos;
-    let v2x=b.vx*cos+b.vy*sin;
-    let v2y=-b.vx*sin+b.vy*cos;
+    let p=2*(a.vx*nx+a.vy*ny - b.vx*nx - b.vy*ny)/(a.mass+b.mass);
 
-    [v1x,v2x]=[v2x,v1x];
+    a.vx-=p*a.mass*nx;
+    a.vy-=p*a.mass*ny;
+    b.vx+=p*b.mass*nx;
+    b.vy+=p*b.mass*ny;
 
-    a.vx=v1x*cos-v1y*sin;
-    a.vy=v1x*sin+v1y*cos;
-    b.vx=v2x*cos-v2y*sin;
-    b.vy=v2x*sin+v2y*cos;
-
-    let overlap=(a.r+b.r)-dist;
-    a.x-=overlap*cos/2;
-    a.y-=overlap*sin/2;
-    b.x+=overlap*cos/2;
-    b.y+=overlap*sin/2;
+    let overlap=(a.r+b.r-dist)/2;
+    a.x-=nx*overlap;
+    a.y-=ny*overlap;
+    b.x+=nx*overlap;
+    b.y+=ny*overlap;
   }
 }
 
+// ===== الطاولة =====
 function drawTable(){
-  // طاولة احترافية (منظور)
-  ctx.fillStyle="#0f6b4d";
+  ctx.fillStyle="#0f6a4d";
   ctx.fillRect(table.x,table.y,table.w,table.h);
 
-  ctx.strokeStyle="#2b1b0f";
-  ctx.lineWidth=20;
+  ctx.strokeStyle="#3b2412";
+  ctx.lineWidth=18;
   ctx.strokeRect(table.x,table.y,table.w,table.h);
 }
 
+// ===== الهدف =====
 function drawAim(){
   if(mouse.down){
     ctx.beginPath();
-    ctx.strokeStyle="rgba(255,255,255,0.8)";
     ctx.setLineDash([6,6]);
+    ctx.strokeStyle="rgba(255,255,255,0.8)";
     ctx.moveTo(cue.x,cue.y);
     ctx.lineTo(mouse.x,mouse.y);
     ctx.stroke();
@@ -191,19 +191,22 @@ function drawAim(){
   }
 }
 
+// ===== loop =====
 function loop(){
   ctx.clearRect(0,0,c.width,c.height);
 
   drawTable();
   drawAim();
 
-  for(let b of balls){b.update();b.draw();}
+  for(let b of balls) b.update();
 
   for(let i=0;i<balls.length;i++){
     for(let j=i+1;j<balls.length;j++){
       collide(balls[i],balls[j]);
     }
   }
+
+  for(let b of balls) b.draw();
 
   requestAnimationFrame(loop);
 }
