@@ -2,16 +2,16 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>Billiard Pro - Final Version</title>
+    <title>8 Ball Pool Pro - Final Fix</title>
     <style>
-        body { margin: 0; background: #0b0f1a; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; }
-        #game-container { position: relative; padding: 15px; background: #3d2416; border-radius: 20px; box-shadow: 0 0 80px rgba(0,0,0,0.8); }
-        canvas { background: #1e4b8a; border-radius: 5px; display: block; cursor: crosshair; }
+        body { margin: 0; background: #0b0f1a; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+        #game-wrapper { position: relative; border: 15px solid #3d2416; border-radius: 20px; background: #3d2416; box-shadow: 0 0 100px rgba(0,0,0,0.9); }
+        canvas { background: #1e4b8a; display: block; cursor: crosshair; }
     </style>
 </head>
 <body>
 
-<div id="game-container">
+<div id="game-wrapper">
     <canvas id="poolCanvas"></canvas>
 </div>
 
@@ -23,142 +23,170 @@ canvas.width = 900;
 canvas.height = 450;
 
 const BALL_R = 12;
-const CUSHION = 20;
+const FRICTION = 0.985;
+const CUSHION = 22;
 
 let balls = [];
 let cueBall;
 let isDragging = false;
 let mouse = { x: 0, y: 0 };
-let aimAngle = 0;
+let shotAngle = 0;
 let power = 0;
 
-const colors = ["#fff", "#facc15", "#1d4ed8", "#dc2626", "#7c3aed", "#ea580c", "#16a34a", "#7f1d1d", "#000", "#fde047", "#60a5fa", "#f87171", "#a78bfa", "#fb923c", "#4ade80", "#b91c1c"];
+const ballColors = ["#fff", "#facc15", "#1d4ed8", "#dc2626", "#7c3aed", "#ea580c", "#16a34a", "#7f1d1d", "#111", "#fde047", "#60a5fa", "#fca5a5", "#c084fc", "#fdba74", "#86efac", "#991b1b"];
 
 class Ball {
     constructor(x, y, num, color) {
         this.x = x; this.y = y; this.num = num; this.color = color;
         this.vx = 0; this.vy = 0; this.inPocket = false;
     }
+
     draw() {
         if (this.inPocket) return;
-        ctx.beginPath(); ctx.arc(this.x + 2, this.y + 2, BALL_R, 0, Math.PI*2);
+        
+        // 1. الظل
+        ctx.beginPath(); ctx.arc(this.x + 3, this.y + 3, BALL_R, 0, Math.PI*2);
         ctx.fillStyle = "rgba(0,0,0,0.3)"; ctx.fill();
+
+        // 2. جسم الكرة (تدرج 3D)
         let g = ctx.createRadialGradient(this.x-4, this.y-4, 2, this.x, this.y, BALL_R);
         g.addColorStop(0, "#fff"); g.addColorStop(0.4, this.color); g.addColorStop(1, "#000");
-        ctx.beginPath(); ctx.arc(this.x, this.y, BALL_R, 0, Math.PI*2); ctx.fillStyle = g; ctx.fill();
+        ctx.beginPath(); ctx.arc(this.x, this.y, BALL_R, 0, Math.PI*2);
+        ctx.fillStyle = g; ctx.fill();
+
+        // 3. الأرقام (مهمة جداً)
+        if (this.num > 0) {
+            ctx.fillStyle = "white"; ctx.beginPath(); ctx.arc(this.x, this.y, BALL_R/1.7, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = "black"; ctx.font = "bold 10px Arial"; ctx.textAlign = "center";
+            ctx.fillText(this.num, this.x, this.y + 4);
+        }
     }
+
     update() {
         if (this.inPocket) return;
         this.x += this.vx; this.y += this.vy;
-        this.vx *= 0.985; this.vy *= 0.985;
-        if(Math.hypot(this.vx, this.vy) < 0.1) { this.vx = 0; this.vy = 0; }
+        this.vx *= FRICTION; this.vy *= FRICTION;
 
-        // ارتداد الحواف
+        if (Math.hypot(this.vx, this.vy) < 0.1) { this.vx = 0; this.vy = 0; }
+
+        // تصادم الحواف (Cushions)
         if (this.x < CUSHION || this.x > canvas.width - CUSHION) {
-            if (this.y > 50 && this.y < 400) { this.vx *= -0.8; this.x = this.x < CUSHION ? CUSHION : canvas.width - CUSHION; }
+            if (this.y > 45 && this.y < 405) { this.vx *= -0.8; this.x = this.x < CUSHION ? CUSHION : canvas.width - CUSHION; }
         }
         if (this.y < CUSHION || this.y > canvas.height - CUSHION) {
-            if ((this.x > 50 && this.x < 430) || (this.x > 470 && this.x < 850)) { this.vy *= -0.8; this.y = this.y < CUSHION ? CUSHION : canvas.height - CUSHION; }
+            if ((this.x > 45 && this.x < 430) || (this.x > 470 && this.x < 855)) { this.vy *= -0.8; this.y = this.y < CUSHION ? CUSHION : canvas.height - CUSHION; }
         }
 
-        // الحفر
+        // الحفر (Pockets)
         [[0,0], [450,0], [900,0], [0,450], [450,450], [900,450]].forEach(p => {
-            if(Math.hypot(this.x - p[0], this.y - p[1]) < 30) this.inPocket = true;
+            if (Math.hypot(this.x - p[0], this.y - p[1]) < 32) {
+                this.inPocket = true;
+                if (this.num === 0) setTimeout(resetCue, 500);
+            }
         });
-        if (this.inPocket && this.num === 0) { this.inPocket=false; this.x=230; this.y=225; this.vx=0; this.vy=0; }
     }
 }
 
-function init() {
+function initTable() {
     balls = [];
-    cueBall = new Ball(230, 225, 0, colors[0]);
+    cueBall = new Ball(230, 225, 0, ballColors[0]);
     balls.push(cueBall);
-    let n=1;
-    for(let i=0; i<5; i++) {
-        for(let j=0; j<=i; j++) {
-            balls.push(new Ball(620 + i*22, 225 - (i*11) + j*23, n, colors[n]));
+    let n = 1;
+    for (let i = 0; i < 5; i++) {
+        for (let j = 0; j <= i; j++) {
+            balls.push(new Ball(620 + i * 23, 225 - (i * 11.5) + j * 24, n, ballColors[n]));
             n++;
         }
     }
 }
 
+function resetCue() { cueBall.inPocket = false; cueBall.x = 230; cueBall.y = 225; cueBall.vx = 0; cueBall.vy = 0; }
+
+function resolveCollisions() {
+    for (let i = 0; i < balls.length; i++) {
+        for (let j = i + 1; j < balls.length; j++) {
+            let b1 = balls[i], b2 = balls[j];
+            if (b1.inPocket || b2.inPocket) continue;
+            let dist = Math.hypot(b2.x - b1.x, b2.y - b1.y);
+            if (dist < BALL_R * 2) {
+                let angle = Math.atan2(b2.y - b1.y, b2.x - b1.x);
+                let overlap = BALL_R * 2 - dist;
+                b1.x -= Math.cos(angle) * overlap / 2; b1.y -= Math.sin(angle) * overlap / 2;
+                b2.x += Math.cos(angle) * overlap / 2; b2.y += Math.sin(angle) * overlap / 2;
+                let v1n = b1.vx * Math.cos(angle) + b1.vy * Math.sin(angle);
+                let v2n = b2.vx * Math.cos(angle) + b2.vy * Math.sin(angle);
+                let v1t = -b1.vx * Math.sin(angle) + b1.vy * Math.cos(angle);
+                let v2t = -b2.vx * Math.sin(angle) + b2.vy * Math.cos(angle);
+                b1.vx = v2n * Math.cos(angle) - v1t * Math.sin(angle); b1.vy = v2n * Math.sin(angle) + v1t * Math.cos(angle);
+                b2.vx = v1n * Math.cos(angle) - v2t * Math.sin(angle); b2.vy = v1n * Math.sin(angle) + v2t * Math.cos(angle);
+            }
+        }
+    }
+}
+
 function drawTable() {
-    ctx.fillStyle = "#1e4b8a"; ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = "#1e4b8a"; ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "#163a6e";
-    ctx.fillRect(45, 0, 375, CUSHION); ctx.fillRect(480, 0, 375, CUSHION); // فوق
-    ctx.fillRect(45, 430, 375, CUSHION); ctx.fillRect(480, 430, 375, CUSHION); // تحت
-    ctx.fillRect(0, 45, CUSHION, 360); ctx.fillRect(880, 45, CUSHION, 360); // جوانب
+    ctx.fillRect(45, 0, 375, CUSHION); ctx.fillRect(480, 0, 375, CUSHION);
+    ctx.fillRect(45, 428, 375, CUSHION); ctx.fillRect(480, 428, 375, CUSHION);
+    ctx.fillRect(0, 45, CUSHION, 360); ctx.fillRect(878, 45, CUSHION, 360);
     ctx.fillStyle = "#000";
     [[0,0], [450,0], [900,0], [0,450], [450,450], [900,450]].forEach(p => {
-        ctx.beginPath(); ctx.arc(p[0], p[1], 30, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(p[0], p[1], 32, 0, Math.PI*2); ctx.fill();
     });
 }
 
-function drawAim() {
-    if (cueBall.vx !== 0 || cueBall.vy !== 0) return;
+function drawAimingSystem() {
+    if (Math.hypot(cueBall.vx, cueBall.vy) > 0.1) return;
 
-    // الماوس هنا يتحكم في الزاوية فقط
-    aimAngle = Math.atan2(mouse.y - cueBall.y, mouse.x - cueBall.x);
+    shotAngle = Math.atan2(mouse.y - cueBall.y, mouse.x - cueBall.x);
 
-    // خط الايم: ينطلق من الكرة البيضاء باتجاه الماوس
-    ctx.setLineDash([5, 5]);
-    ctx.strokeStyle = "white";
+    // خط التصويب من الكرة البيضاء
+    ctx.setLineDash([6, 6]);
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
     ctx.beginPath();
     ctx.moveTo(cueBall.x, cueBall.y);
-    ctx.lineTo(cueBall.x + Math.cos(aimAngle) * 500, cueBall.y + Math.sin(aimAngle) * 500);
+    ctx.lineTo(cueBall.x + Math.cos(shotAngle) * 600, cueBall.y + Math.sin(shotAngle) * 600);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // العصا: تظهر دائماً في الجهة المقابلة (خلف الكرة)
-    let stickDist = isDragging ? power * 2 + 20 : 20;
+    // العصا (تتحرك للخلف عند السحب)
+    let stickBack = isDragging ? power * 2.5 + 20 : 20;
     ctx.save();
     ctx.translate(cueBall.x, cueBall.y);
-    ctx.rotate(aimAngle + Math.PI); // عكس زاوية الايم
-    let g = ctx.createLinearGradient(-stickDist, 0, -stickDist-350, 0);
-    g.addColorStop(0, "#fde047"); g.addColorStop(0.1, "#452512"); g.addColorStop(1, "#000");
-    ctx.fillStyle = g;
-    ctx.beginPath(); ctx.roundRect(-stickDist, -4, -350, 8, 4); ctx.fill();
+    ctx.rotate(shotAngle + Math.PI);
+    let stickG = ctx.createLinearGradient(-stickBack, 0, -stickBack - 350, 0);
+    stickG.addColorStop(0, "#fde047"); stickG.addColorStop(0.1, "#452512"); stickG.addColorStop(1, "#000");
+    ctx.fillStyle = stickG;
+    ctx.beginPath(); ctx.roundRect(-stickBack, -4, -350, 8, 4); ctx.fill();
     ctx.restore();
 }
 
-canvas.onmousedown = () => { if(cueBall.vx===0) isDragging = true; };
+canvas.onmousedown = () => { if (Math.hypot(cueBall.vx, cueBall.vy) === 0) isDragging = true; };
 window.onmousemove = (e) => {
     const rect = canvas.getBoundingClientRect();
     mouse = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-    if(isDragging) power = Math.min(Math.hypot(mouse.x - cueBall.x, mouse.y - cueBall.y)/5, 30);
+    if (isDragging) power = Math.min(Math.hypot(mouse.x - cueBall.x, mouse.y - cueBall.y) / 5, 40);
 };
 window.onmouseup = () => {
-    if(isDragging) {
-        cueBall.vx = Math.cos(aimAngle) * power;
-        cueBall.vy = Math.sin(aimAngle) * power;
+    if (isDragging) {
+        cueBall.vx = Math.cos(shotAngle) * power;
+        cueBall.vy = Math.sin(shotAngle) * power;
         isDragging = false; power = 0;
     }
 };
 
-function loop() {
-    ctx.clearRect(0,0,canvas.width,canvas.height);
+function gameLoop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawTable();
     balls.forEach(b => { b.update(); b.draw(); });
-    // Collision logic
-    for(let i=0; i<balls.length; i++) {
-        for(let j=i+1; j<balls.length; j++) {
-            let b1=balls[i], b2=balls[j];
-            if(b1.inPocket || b2.inPocket) continue;
-            let d = Math.hypot(b2.x-b1.x, b2.y-b1.y);
-            if(d < BALL_R*2) {
-                let a = Math.atan2(b2.y-b1.y, b2.x-b1.x);
-                let v1n = b1.vx*Math.cos(a) + b1.vy*Math.sin(a);
-                let v2n = b2.vx*Math.cos(a) + b2.vy*Math.sin(a);
-                b1.vx += (v2n-v1n)*Math.cos(a); b1.vy += (v2n-v1n)*Math.sin(a);
-                b2.vx += (v1n-v2n)*Math.cos(a); b2.vy += (v1n-v2n)*Math.sin(a);
-            }
-        }
-    }
-    drawAim();
-    requestAnimationFrame(loop);
+    resolveCollisions();
+    drawAimingSystem();
+    requestAnimationFrame(gameLoop);
 }
 
-init(); loop();
+initTable();
+gameLoop();
 </script>
 </body>
 </html>
