@@ -1,125 +1,4 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-<meta charset="UTF-8">
-<title>AI ضخم</title>
-
-<style>
-body {background:#0f172a;color:white;font-family:Arial;display:flex;justify-content:center;align-items:center;height:100vh;}
-.container {width:700px;background:#1e293b;border-radius:15px;display:flex;flex-direction:column;}
-.chat {height:420px;overflow:auto;padding:10px;}
-.msg {padding:10px;margin:8px;border-radius:10px;}
-.user {background:#38bdf8;color:black;text-align:right;}
-.bot {background:#334155;}
-.input {display:flex;}
-input {flex:1;padding:10px;border:none;}
-button {padding:10px;background:#38bdf8;border:none;cursor:pointer;}
-</style>
-</head>
-
-<body>
-
-<div class="container">
-    <div id="chat" class="chat"></div>
-    <div class="input">
-        <button onclick="send()">إرسال</button>
-        <input id="input" placeholder="اكتب هنا...">
-    </div>
-</div>
-
-<script>
-
-// 🧠 قاعدة البيانات الأساسية
-let brain = [
- {patterns:["مرحبا","اهلا","السلام عليكم","هلو","هاي"],responses:["أهلاً 👋","نورت 😄","مرحبا!"]},
- {patterns:["كيف حالك","كيفك","وش اخبارك"],responses:["تمام 😎","بخير الحمدلله وانت؟"]},
- {patterns:["اسمك","مين انت"],responses:["أنا AI متطور 🤖"]},
- {patterns:["شكرا","thanks"],responses:["العفو ❤️","أي وقت!"]},
- {patterns:["وداعا","باي"],responses:["مع السلامة 👋"]}
-];
-
-// 🚀 توليد 1000+ رسالة تلقائياً
-const topics = [
- "برمجة","لعبة","مدرسة","جامعة","رياضة","كرة قدم","ذكاء اصطناعي",
- "حاسوب","انترنت","هاتف","اندرويد","ايفون","افلام","مسلسلات",
- "تصميم","جرافيك","يوتيوب","تيك توك","انستغرام","مال","عمل"
-];
-
-const actions = [
- "كيف","ليش","وش","افضل","اسرع","طريقة","تعلم","شرح","مشكلة","حل"
-];
-
-for(let i=0;i<topics.length;i++){
-  for(let j=0;j<actions.length;j++){
-    brain.push({
-      patterns:[actions[j]+" "+topics[i], topics[i]+" "+actions[j]],
-      responses:[
-        `سؤالك عن ${topics[i]} 👍 خليني أساعدك`,
-        `موضوع ${topics[i]} مهم 🔥`,
-        `أكيد! بخصوص ${topics[i]}...`
-      ]
-    });
-  }
-}
-
-// 🔥 زيادة ضخمة عشوائية (يوصل +1000)
-for(let i=0;i<1000;i++){
-  brain.push({
-    patterns:[`سؤال${i}`,`استفسار${i}`,`help${i}`],
-    responses:[
-      `هذا رد ذكي رقم ${i}`,
-      `تم فهم طلبك رقم ${i}`,
-      `جارٍ تحليل السؤال ${i} 🤖`
-    ]
-  });
-}
-
-// 🧠 تحسين الفهم
-function clean(text){
-  return text.toLowerCase().replace(/[^\w\s]/g,"").split(" ");
-}
-
-function score(inputWords, patterns){
-  let s = 0;
-  for(let w of inputWords){
-    for(let p of patterns){
-      if(p.includes(w)) s+=2;
-    }
-  }
-  return s;
-}
-
-// 🧠 الرد الذكي
-function smartReply(input){
-  let words = clean(input);
-
-  let bestScore = 0;
-  let bestResponses = ["ما فهمت 🤔 حاول توضح أكثر"];
-
-  for(let item of brain){
-    let s = score(words, item.patterns);
-
-    if(s > bestScore){
-      bestScore = s;
-      bestResponses = item.responses;
-    }
-  }
-
-  return bestResponses[Math.floor(Math.random()*bestResponses.length)];
-}
-
-// 💬 الواجهة
-const chat = document.getElementById("chat");
-
-function add(text,type){
-  let div = document.createElement("div");
-  div.className = "msg "+type;
-  div.innerText = text;
-  chat.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
-}
-
-function send(){
+async function send(){
   let input = document.getElementById("input");
   let text = input.value.trim();
   if(!text) return;
@@ -127,16 +6,24 @@ function send(){
   add(text,"user");
   input.value="";
 
-  setTimeout(()=>{
-    add(smartReply(text),"bot");
-  },300);
+  add("⏳ جاري التفكير...", "bot");
+
+  try {
+    const res = await fetch("http://localhost:3000/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ message: text })
+    });
+
+    const data = await res.json();
+
+    chat.removeChild(chat.lastChild);
+    add(data.reply, "bot");
+
+  } catch {
+    chat.removeChild(chat.lastChild);
+    add("❌ فشل الاتصال بالسيرفر", "bot");
+  }
 }
-
-document.getElementById("input").addEventListener("keypress",e=>{
-  if(e.key==="Enter") send();
-});
-
-</script>
-
-</body>
-</html>
