@@ -2,71 +2,43 @@
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <title>Billiards Master Pro - High Graphics</title>
+    <title>Billiards Master Ultra HD</title>
     <style>
         body { 
-            background: #0a0e14; 
+            background: #05070a; 
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
             height: 100vh; margin: 0; color: white; font-family: 'Segoe UI', Arial; overflow: hidden; 
         }
-        
-        #gameWrapper { position: relative; padding: 25px; background: #1a1a1a; border-radius: 15px; box-shadow: 0 0 100px rgba(0,0,0,0.9); }
-
-        /* واجهة المستخدم العلوية */
-        #topHUD {
-            display: flex; justify-content: space-between; align-items: center;
-            width: 900px; margin-bottom: 15px;
+        #gameWrapper { position: relative; padding: 20px; background: #1a1a1a; border-radius: 20px; box-shadow: 0 0 150px rgba(0,0,0,1); }
+        canvas { border-radius: 10px; cursor: crosshair; }
+        #powerUI {
+            position: absolute; right: -50px; top: 100px; width: 25px; height: 250px;
+            background: #111; border: 2px solid #333; border-radius: 12px; overflow: hidden;
         }
-        .player { display: flex; align-items: center; gap: 12px; }
-        .avatar { width: 45px; height: 45px; border-radius: 8px; border: 2px solid #ffd700; background: #333; }
-        .score-box { background: rgba(255,255,255,0.1); padding: 5px 15px; border-radius: 20px; font-weight: bold; color: #ffd700; }
-
-        /* الطاولة والجرافيكس */
-        canvas { 
-            border: 18px solid #5d2906; /* إطار خشبي داكن */
-            border-radius: 12px;
-            cursor: none; /* سنرسم مؤشر مخصص أو نكتفي بالعصا */
-        }
-
-        #powerContainer {
-            position: absolute; right: -60px; top: 100px;
-            width: 30px; height: 250px; background: #222; border: 2px solid #444; border-radius: 5px;
-        }
-        #powerBar { width: 100%; background: linear-gradient(to top, #ff0000, #ffff00, #00ff00); position: absolute; bottom: 0; transition: height 0.1s; }
+        #powerFill { width: 100%; position: absolute; bottom: 0; background: linear-gradient(to top, #ff0000, #ffea00, #00ff00); transition: 0.1s; }
     </style>
 </head>
 <body>
 
-    <div id="topHUD">
-        <div class="player">
-            <div class="avatar" style="background: linear-gradient(45deg, #2e7d32, #1b5e20);"></div>
-            <div><strong>SUSAN</strong><br><span style="font-size: 12px; color: #aaa;">Level 43</span></div>
-        </div>
-        <div class="score-box">MATCH 🪙 100</div>
-        <div class="player">
-            <div style="text-align: right;"><strong>BRIAN</strong><br><span style="font-size: 12px; color: #aaa;">Level 78</span></div>
-            <div class="avatar" style="background: linear-gradient(45deg, #d32f2f, #b71c1c);"></div>
-        </div>
-    </div>
-
     <div id="gameWrapper">
-        <canvas id="poolCanvas" width="900" height="450"></canvas>
-        <div id="powerContainer"><div id="powerBar" style="height: 0%"></div></div>
+        <canvas id="poolCanvas" width="940" height="490"></canvas>
+        <div id="powerUI"><div id="powerFill" style="height: 0%"></div></div>
     </div>
 
 <script>
 const canvas = document.getElementById('poolCanvas');
 const ctx = canvas.getContext('2d');
 
-const BALL_R = 13.5;
-const POCKET_R = 26;
-const FRICTION = 0.988;
-const COLORS = ["#FFFFFF", "#FDD835", "#1E88E5", "#E53935", "#8E24AA", "#FB8C00", "#43A047", "#B71C1C", "#111111", "#FFEE58", "#42A5F5", "#EF5350", "#AB47BC", "#FFA726", "#66BB6A", "#D32F2F"];
+// الثوابت
+const BALL_R = 13;
+const POCKET_R = 28;
+const FRICTION = 0.985;
+const COLORS = ["#FFFFFF", "#FFD600", "#0D47A1", "#B71C1C", "#4A148C", "#E65100", "#1B5E20", "#4E342E", "#000000", "#FFEB3B", "#2196F3", "#F44336", "#9C27B0", "#FF9800", "#4CAF50", "#D32F2F"];
 
 let balls = [];
+let cueBall;
 let isDragging = false;
 let mouse = { x: 0, y: 0 };
-let cueBall;
 
 class Ball {
     constructor(x, y, color, num, isCue = false) {
@@ -75,122 +47,102 @@ class Ball {
         this.color = color;
         this.num = num;
         this.isCue = isCue;
+        this.inPocket = false;
     }
 
     draw() {
-        // ظل الكرة الممتد
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = "rgba(0,0,0,0.5)";
-        ctx.shadowOffsetX = 4;
-        ctx.shadowOffsetY = 4;
+        if (this.inPocket) return;
 
-        // جسم الكرة بتدرج 3D احترافي
-        let grad = ctx.createRadialGradient(this.x - 5, this.y - 5, 2, this.x, this.y, BALL_R);
-        grad.addColorStop(0, "#ffffff"); // بقعة الضوء
+        // ظل الكرة على القماش
+        ctx.save();
+        ctx.shadowBlur = 10; ctx.shadowColor = "rgba(0,0,0,0.6)";
+        ctx.shadowOffsetX = 5; ctx.shadowOffsetY = 5;
+
+        // الكرة 3D
+        let grad = ctx.createRadialGradient(this.x - 4, this.y - 4, 1, this.x, this.y, BALL_R);
+        grad.addColorStop(0, "#ffffff");
         grad.addColorStop(0.3, this.color);
-        grad.addColorStop(1, "#000000");
+        grad.addColorStop(1, "#000");
 
         ctx.beginPath();
         ctx.arc(this.x, this.y, BALL_R, 0, Math.PI * 2);
         ctx.fillStyle = grad;
         ctx.fill();
-        ctx.shadowColor = "transparent"; // إعادة تصفير الظل لبقية العناصر
+        ctx.restore();
 
-        // إضافة رقم الكرة
+        // الرقم
         if (!this.isCue) {
             ctx.beginPath();
-            ctx.arc(this.x, this.y, BALL_R * 0.5, 0, Math.PI * 2);
+            ctx.arc(this.x, this.y, BALL_R * 0.45, 0, Math.PI * 2);
             ctx.fillStyle = "white";
             ctx.fill();
-            
             ctx.fillStyle = "black";
-            ctx.font = "bold 10px Arial";
+            ctx.font = "bold 9px Arial";
             ctx.textAlign = "center";
-            ctx.fillText(this.num, this.x, this.y + 3.5);
+            ctx.fillText(this.num, this.x, this.y + 3);
         }
     }
 
     update() {
+        if (this.inPocket) return;
         this.x += this.vx; this.y += this.vy;
         this.vx *= FRICTION; this.vy *= FRICTION;
-        if (Math.hypot(this.vx, this.vy) < 0.12) { this.vx = 0; this.vy = 0; }
+        
+        if (Math.hypot(this.vx, this.vy) < 0.1) { this.vx = 0; this.vy = 0; }
 
-        if (this.x < BALL_R + 10 || this.x > canvas.width - BALL_R - 10) this.vx *= -0.8;
-        if (this.y < BALL_R + 10 || this.y > canvas.height - BALL_R - 10) this.vy *= -0.8;
-        this.x = Math.max(BALL_R + 10, Math.min(canvas.width - BALL_R - 10, this.x));
-        this.y = Math.max(BALL_R + 10, Math.min(canvas.height - BALL_R - 10, this.y));
+        // تصادم الحواف (مع مراعاة سمك الخشب 20px)
+        const wall = 35; 
+        if (this.x < wall + BALL_R || this.x > canvas.width - wall - BALL_R) {
+            this.vx *= -0.7;
+            this.x = this.x < wall + BALL_R ? wall + BALL_R : canvas.width - wall - BALL_R;
+        }
+        if (this.y < wall + BALL_R || this.y > canvas.height - wall - BALL_R) {
+            this.vy *= -0.7;
+            this.y = this.y < wall + BALL_R ? wall + BALL_R : canvas.height - wall - BALL_R;
+        }
     }
 }
 
 function initTable() {
     balls = [];
-    cueBall = new Ball(230, canvas.height/2, "#FFFFFF", 0, true);
+    cueBall = new Ball(250, canvas.height/2, "#FFFFFF", 0, true);
     balls.push(cueBall);
 
     let count = 1;
-    const startX = 620;
-    const startY = canvas.height/2;
+    const startX = 650;
     for (let r = 0; r < 5; r++) {
         for (let i = 0; i <= r; i++) {
-            let color = COLORS[count];
-            if (r === 2 && i === 1) color = "#111111"; // الكرة رقم 8
-            balls.push(new Ball(startX + r * 24, startY - (r * 13.5) + (i * 27), color, count));
+            balls.push(new Ball(startX + r*23, (canvas.height/2 - r*14) + i*28, COLORS[count], count));
             count++;
         }
     }
 }
 
 function drawTable() {
-    // خلفية القماش مع تدرج إضاءة في المنتصف
-    let tableGrad = ctx.createRadialGradient(450, 225, 50, 450, 225, 600);
-    tableGrad.addColorStop(0, "#3a86c0");
-    tableGrad.addColorStop(1, "#1e4a73");
-    ctx.fillStyle = tableGrad;
+    // 1. الإطار الخشبي الخارجي
+    ctx.fillStyle = "#3e2723";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // الخط الأبيض (المنطقة D)
-    ctx.strokeStyle = "rgba(255,255,255,0.3)";
+    // 2. الحواف الداخلية (Cushions) بظل
+    ctx.fillStyle = "#263238"; 
+    ctx.fillRect(20, 20, canvas.width - 40, canvas.height - 40);
+
+    // 3. القماش الأزرق الفاخر
+    let clothGrad = ctx.createRadialGradient(470, 245, 100, 470, 245, 500);
+    clothGrad.addColorStop(0, "#2a699c");
+    clothGrad.addColorStop(1, "#1a4a70");
+    ctx.fillStyle = clothGrad;
+    ctx.fillRect(35, 35, canvas.width - 70, canvas.height - 70);
+
+    // 4. الخط الأبيض
+    ctx.strokeStyle = "rgba(255,255,255,0.2)";
     ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(230, 10);
-    ctx.lineTo(230, 440);
-    ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(250, 35); ctx.lineTo(250, 455); ctx.stroke();
 
-    // الفتحات (Pockets) بتأثير عمق
-    [[0,0], [450, -5], [900,0], [0,450], [450, 455], [900,450]].forEach(p => {
-        ctx.beginPath();
-        ctx.arc(p[0], p[1], POCKET_R, 0, Math.PI*2);
-        ctx.fillStyle = "#050505";
-        ctx.fill();
-        ctx.strokeStyle = "#444";
-        ctx.stroke();
-    });
-}
-
-function resolveCollisions() {
-    for (let i = 0; i < balls.length; i++) {
-        for (let j = i + 1; j < balls.length; j++) {
-            let b1 = balls[i], b2 = balls[j];
-            let dist = Math.hypot(b2.x - b1.x, b2.y - b1.y);
-            if (dist < BALL_R * 2) {
-                let angle = Math.atan2(b2.y - b1.y, b2.x - b1.x);
-                let overlap = BALL_R * 2 - dist;
-                b1.x -= Math.cos(angle) * overlap / 2;
-                b1.y -= Math.sin(angle) * overlap / 2;
-                b2.x += Math.cos(angle) * overlap / 2;
-                b2.y += Math.sin(angle) * overlap / 2;
-
-                let v1 = Math.sqrt(b1.vx**2 + b1.vy**2);
-                let v2 = Math.sqrt(b2.vx**2 + b2.vy**2);
-                let dir1 = Math.atan2(b1.vy, b1.vx);
-                let dir2 = Math.atan2(b2.vy, b2.vx);
-
-                let vx1 = v1 * Math.cos(dir1 - angle);
-                let vy1 = v1 * Math.sin(dir1 - angle);
-                let vx2 = v2 * Math.cos(dir2 - angle);
-                let vy2 = v2 * Math.sin(dir2 - angle);
-
-                b1.vx = (vx2 * Math.cos(angle) + vy1 * Math.cos(angle + Math.PI/2));
-                b1.vy = (vx2 * Math.sin(angle) + vy1 * Math.sin(angle + Math.PI/2));
-                b2.vx = (vx1 * Math.cos(angle) + vy2 * Math.cos(angle + Math.PI/2));
-                b2.vy = (vx1 * Math.
+    // 5. الفتحات (Pockets) - تم تحسين البرمجة لتكون في الزوايا بالضبط
+    const holes = [
+        [35, 35], [470, 25], [905, 35],
+        [35, 455], [470, 465], [905, 455]
+    ];
+    ctx.shadowBlur = 15; ctx.shadowColor = "black";
+    holes.forEach
