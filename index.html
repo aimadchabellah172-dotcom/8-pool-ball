@@ -2,29 +2,35 @@
 <html lang="ar">
 <head>
 <meta charset="UTF-8" />
-<title>بلياردو متطور 3D</title>
+<title>بلياردو واقعي متقدم</title>
 <style>
-body{margin:0;overflow:hidden;background:radial-gradient(#0d5a3f,#06281c);font-family:Arial}
-canvas{display:block;margin:auto}
+body{margin:0;overflow:hidden;background:radial-gradient(#0b5a3f,#061f16);font-family:Arial}
+canvas{display:block}
 #ui{
-position:fixed;top:10px;left:10px;color:#fff;
-background:rgba(0,0,0,0.4);
-padding:10px;border-radius:10px
+position:fixed;top:10px;left:10px;
+background:rgba(0,0,0,0.5);
+color:#fff;padding:10px;border-radius:10px;
+font-size:14px
 }
 </style>
 </head>
 <body>
-<div id="ui">
-اسحب لتحديد القوة | تحكم بالسبن عبر الحركة السريعة للماوس
-</div>
+<div id="ui">🎱 بلياردو واقعي - اسحب لتحديد القوة والاتجاه</div>
 <canvas id="c"></canvas>
 <script>
 const c=document.getElementById('c');
 const ctx=c.getContext('2d');
 c.width=innerWidth;c.height=innerHeight;
 
-const FRICTION=0.986;
-const BALL_R=16;
+const BALL_R=14;
+const FRICTION=0.985;
+const RESTITUTION=0.92;
+
+// الجيوب
+const pockets=[
+{x:0,y:0},{x:c.width/2,y:0},{x:c.width,y:0},
+{x:0,y:c.height},{x:c.width/2,y:c.height},{x:c.width,y:c.height}
+];
 
 class Ball{
   constructor(x,y,color,id){
@@ -33,144 +39,67 @@ class Ball{
     this.r=BALL_R;
     this.color=color;
     this.id=id;
-    this.spin=0;
-    this.glow=Math.random()*5;
+    this.inPocket=false;
   }
 
   draw(){
-    ctx.save();
-    ctx.translate(this.x,this.y);
+    if(this.inPocket) return;
 
-    // ظل أرضي (3D effect)
     ctx.beginPath();
-    ctx.fillStyle="rgba(0,0,0,0.3)";
-    ctx.ellipse(3,6,this.r*0.9,this.r*0.6,0,0,Math.PI*2);
+    ctx.fillStyle=this.color;
+    ctx.arc(this.x,this.y,this.r,0,Math.PI*2);
     ctx.fill();
 
-    // كرة مع تدرج (3D look)
-    let grad=ctx.createRadialGradient(-5,-5,2,0,0,this.r);
-    grad.addColorStop(0,"#fff");
-    grad.addColorStop(0.2,this.color);
-    grad.addColorStop(1,"#000");
-
-    ctx.beginPath();
-    ctx.fillStyle=grad;
-    ctx.arc(0,0,this.r,0,Math.PI*2);
-    ctx.fill();
-
-    // خط سبن
-    ctx.rotate(this.spin);
-    ctx.beginPath();
-    ctx.strokeStyle="rgba(255,255,255,0.8)";
-    ctx.lineWidth=2;
-    ctx.moveTo(0,0);
-    ctx.lineTo(this.r,0);
-    ctx.stroke();
-
-    ctx.restore();
+    // رقم الكرة
+    ctx.fillStyle="#000";
+    ctx.font="12px Arial";
+    ctx.textAlign="center";
+    ctx.textBaseline="middle";
+    ctx.fillText(this.id,this.x,this.y);
   }
 
   update(){
+    if(this.inPocket) return;
+
     this.x+=this.vx;
     this.y+=this.vy;
 
-    // احتكاك واقعي
     this.vx*=FRICTION;
     this.vy*=FRICTION;
 
-    // سبن متقدم (يتأثر بالقوة)
-    this.spin+=this.vx*0.03 + this.vy*0.02;
+    // الجدران (بدون ارتداد في الجيوب)
+    if(this.x<this.r){this.x=this.r;this.vx*=-RESTITUTION;}
+    if(this.x>c.width-this.r){this.x=c.width-this.r;this.vx*=-RESTITUTION;}
+    if(this.y<this.r){this.y=this.r;this.vy*=-RESTITUTION;}
+    if(this.y>c.height-this.r){this.y=c.height-this.r;this.vy*=-RESTITUTION;}
 
-    // جدران
-    if(this.x<this.r||this.x>c.width-this.r){this.vx*=-0.9;}
-    if(this.y<this.r||this.y>c.height-this.r){this.vy*=-0.9;}
+    // الجيوب
+    for(let p of pockets){
+      let dx=this.x-p.x;
+      let dy=this.y-p.y;
+      if(Math.hypot(dx,dy)<30){
+        this.inPocket=true;
+        this.vx=0;this.vy=0;
+      }
+    }
   }
 }
 
 let balls=[];
-let cue=new Ball(250,300,"#ffffff",0);
+
+// كرة cue
+let cue=new Ball(200,300,"#ffffff",0);
 balls.push(cue);
 
-for(let i=0;i<10;i++){
-  balls.push(new Ball(600+(i%5)*30,300+Math.floor(i/5)*30,
-  `hsl(${i*36},90%,55%)`,i+1));
+// ترتيب مثلث
+let id=1;
+for(let i=0;i<5;i++){
+  for(let j=0;j<=i;j++){
+    balls.push(new Ball(600+i*28,300+j*28-(i*14),`hsl(${id*30},90%,55%)`,id));
+    id++;
+  }
 }
 
 let mouse={x:0,y:0,down:false};
-let power=0;
 
-c.onmousemove=e=>{mouse.x=e.clientX;mouse.y=e.clientY;};
-c.onmousedown=()=>{mouse.down=true;power=0;};
-c.onmouseup=()=>{
-  mouse.down=false;
-
-  let dx=cue.x-mouse.x;
-  let dy=cue.y-mouse.y;
-
-  cue.vx=dx*0.18;
-  cue.vy=dy*0.18;
-};
-
-function collide(a,b){
-  let dx=b.x-a.x;
-  let dy=b.y-a.y;
-  let dist=Math.hypot(dx,dy);
-
-  if(dist<a.r+b.r){
-    let angle=Math.atan2(dy,dx);
-
-    let force=0.6;
-    a.vx-=Math.cos(angle)*force;
-    a.vy-=Math.sin(angle)*force;
-    b.vx+=Math.cos(angle)*force;
-    b.vy+=Math.sin(angle)*force;
-  }
-}
-
-function drawAim(){
-  if(mouse.down){
-    ctx.beginPath();
-    ctx.strokeStyle="rgba(255,255,255,0.8)";
-    ctx.lineWidth=2;
-
-    ctx.moveTo(cue.x,cue.y);
-
-    // خط متطور (متقطع)
-    let dx=cue.x-mouse.x;
-    let dy=cue.y-mouse.y;
-    let len=Math.hypot(dx,dy);
-
-    for(let i=0;i<len;i+=10){
-      let x=cue.x-(dx/len)*i;
-      let y=cue.y-(dy/len)*i;
-      ctx.lineTo(x,y);
-    }
-
-    ctx.stroke();
-
-    // قوة
-    ctx.fillStyle="#fff";
-    ctx.fillText("Power: "+Math.min(len/10,100).toFixed(0),mouse.x,mouse.y);
-  }
-}
-
-function loop(){
-  ctx.clearRect(0,0,c.width,c.height);
-
-  drawAim();
-
-  for(let b of balls){b.update();b.draw();}
-
-  for(let i=0;i<balls.length;i++){
-    for(let j=i+1;j<balls.length;j++){
-      collide(balls[i],balls[j]);
-    }
-  }
-
-  requestAnimationFrame(loop);
-}
-
-loop();
-</script>
-</body>
-</html>
+c.onmousemove=e=>{
