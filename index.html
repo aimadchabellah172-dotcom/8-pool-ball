@@ -1,217 +1,310 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8" />
-<title>محاكاة بلياردو احترافية</title>
-<style>
-body{margin:0;overflow:hidden;background:#0a1f18;font-family:Arial}
-canvas{display:block}
-#ui{
-position:fixed;top:10px;left:10px;
-background:rgba(0,0,0,0.6);
-color:#fff;
-padding:10px;
-border-radius:10px;
-font-size:13px;
-}
-</style>
+    <meta charset="UTF-8">
+    <title>لعبة البلياردو الاحترافية</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #1a1a1a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+        #ui-container {
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        canvas {
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            border: 15px solid #5d4037;
+            border-radius: 10px;
+            cursor: crosshair;
+        }
+        .controls {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+            background: #333;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .control-group { display: flex; flex-direction: column; align-items: center; }
+        input[type=range] { width: 150px; }
+        #spin-pad {
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 50%;
+            position: relative;
+            cursor: pointer;
+        }
+        #spin-marker {
+            width: 10px;
+            height: 10px;
+            background: red;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+    </style>
 </head>
 <body>
-<div id="ui">🎱 بلياردو احترافي (فيزياء + سبن + تصادم واقعي)</div>
-<canvas id="c"></canvas>
+
+<div id="ui-container">
+    <h2>بلياردو برو 2026</h2>
+    <div id="status">اسحب الكرة البيضاء للتصويب</div>
+</div>
+
+<canvas id="poolTable"></canvas>
+
+<div class="controls">
+    <div class="control-group">
+        <label>قوة الضرب</label>
+        <input type="range" id="powerRange" min="10" max="100" value="50">
+    </div>
+    <div class="control-group">
+        <label>السبن (Spin)</label>
+        <div id="spin-pad">
+            <div id="spin-marker"></div>
+        </div>
+    </div>
+    <div class="control-group">
+        <button onclick="resetGame()" style="padding: 10px 20px; cursor:pointer;">إعادة اللعبة</button>
+    </div>
+</div>
+
 <script>
-const c=document.getElementById("c");
-const ctx=c.getContext("2d");
-c.width=innerWidth;
-c.height=innerHeight;
+/**
+ * إعدادات اللعبة الأساسية
+ */
+const canvas = document.getElementById('poolTable');
+const ctx = canvas.getContext('2d');
+const spinPad = document.getElementById('spin-pad');
+const spinMarker = document.getElementById('spin-marker');
 
-// ===== إعداد الطاولة =====
-const table={x:120,y:80,w:innerWidth-240,h:innerHeight-160};
-const BALL_R=12;
-const FRICTION=0.985;
-const REST=0.9;
-const MAX_SPEED=30;
+canvas.width = 800;
+canvas.height = 400;
 
-// ===== جيوب =====
-const pockets=[
-  {x:table.x,y:table.y},{x:table.x+table.w/2,y:table.y},{x:table.x+table.w,y:table.y},
-  {x:table.x,y:table.y+table.h},{x:table.x+table.w/2,y:table.y+table.h},{x:table.x+table.w,y:table.y+table.h}
+const BALL_RADIUS = 12;
+const FRICTION = 0.985; // احتكاك الطاولة
+const WALL_BOUNCE = 0.7;
+let isDragging = false;
+let mousePos = { x: 0, y: 0 };
+let spin = { x: 0, y: 0 }; // من -1 إلى 1
+
+const colors = [
+    "#ffffff", "#ffeb3b", "#2196f3", "#f44336", "#9c27b0", 
+    "#ff9800", "#4caf50", "#795548", "#212121", "#fdd835",
+    "#1976d2", "#d32f2f", "#7b1fa2", "#fb8c00", "#388e3c", "#5d4037"
 ];
 
-// ===== كرة =====
-class Ball{
-  constructor(x,y,color,id){
-    this.x=x;this.y=y;
-    this.vx=0;this.vy=0;
-    this.r=BALL_R;
-    this.color=color;
-    this.id=id;
-    this.mass=1;
-    this.inPocket=false;
-    this.spinX=0;
-    this.spinY=0;
-  }
+let balls = [];
+const pockets = [
+    {x: 0, y: 0}, {x: 400, y: 0}, {x: 800, y: 0},
+    {x: 0, y: 400}, {x: 400, y: 400}, {x: 800, y: 400}
+];
 
-  draw(){
-    if(this.inPocket) return;
-
-    // ظل
-    ctx.beginPath();
-    ctx.fillStyle="rgba(0,0,0,0.35)";
-    ctx.arc(this.x+2,this.y+3,this.r,0,Math.PI*2);
-    ctx.fill();
-
-    // كرة (3D shading)
-    let g=ctx.createRadialGradient(this.x-4,this.y-4,2,this.x,this.y,this.r);
-    g.addColorStop(0,"#fff");
-    g.addColorStop(0.3,this.color);
-    g.addColorStop(1,"#111");
-
-    ctx.beginPath();
-    ctx.fillStyle=g;
-    ctx.arc(this.x,this.y,this.r,0,Math.PI*2);
-    ctx.fill();
-
-    // رقم
-    ctx.fillStyle="#000";
-    ctx.font="11px Arial";
-    ctx.textAlign="center";
-    ctx.textBaseline="middle";
-    ctx.fillText(this.id,this.x,this.y);
-  }
-
-  update(){
-    if(this.inPocket) return;
-
-    // حركة
-    this.x+=this.vx;
-    this.y+=this.vy;
-
-    // احتكاك
-    this.vx*=FRICTION;
-    this.vy*=FRICTION;
-
-    // إيقاف صغير
-    if(Math.abs(this.vx)<0.02) this.vx=0;
-    if(Math.abs(this.vy)<0.02) this.vy=0;
-
-    // حدود الطاولة
-    if(this.x<this.r+table.x){this.x=this.r+table.x;this.vx*=-REST;}
-    if(this.x>table.x+table.w-this.r){this.x=table.x+table.w-this.r;this.vx*=-REST;}
-    if(this.y<this.r+table.y){this.y=this.r+table.y;this.vy*=-REST;}
-    if(this.y>table.y+table.h-this.r){this.y=table.y+table.h-this.r;this.vy*=-REST;}
-
-    // جيوب
-    for(let p of pockets){
-      if(Math.hypot(this.x-p.x,this.y-p.y)<18){
-        this.inPocket=true;
-        this.vx=this.vy=0;
-      }
+class Ball {
+    constructor(x, y, number, color) {
+        this.x = x;
+        this.y = y;
+        this.vx = 0;
+        this.vy = 0;
+        this.number = number;
+        this.color = color;
+        this.inPocket = false;
     }
-  }
-}
 
-// ===== إنشاء الكرات =====
-let balls=[];
-let cue=new Ball(table.x+200,table.y+table.h/2,"#ffffff",0);
-balls.push(cue);
+    draw() {
+        if (this.inPocket) return;
 
-let id=1;
-for(let i=0;i<5;i++){
-  for(let j=0;j<=i;j++){
-    balls.push(new Ball(table.x+520+i*26,table.y+table.h/2+j*26-i*13,
-    `hsl(${id*28},90%,55%)`,id));
-    id++;
-  }
-}
+        // رسم ظل الكرة
+        ctx.beginPath();
+        ctx.arc(this.x + 3, this.y + 3, BALL_RADIUS, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(0,0,0,0.3)";
+        ctx.fill();
 
-// ===== إدخال =====
-let mouse={x:0,y:0,down:false};
-c.onmousemove=e=>{mouse.x=e.clientX;mouse.y=e.clientY;};
-c.onmousedown=()=>mouse.down=true;
-c.onmouseup=()=>{
-  mouse.down=false;
+        // جسم الكرة
+        let grad = ctx.createRadialGradient(this.x - 4, this.y - 4, 2, this.x, this.y, BALL_RADIUS);
+        grad.addColorStop(0, "white");
+        grad.addColorStop(0.2, this.color);
+        grad.addColorStop(1, "black");
 
-  let dx=cue.x-mouse.x;
-  let dy=cue.y-mouse.y;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, BALL_RADIUS, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
 
-  let power=Math.min(Math.hypot(dx,dy),120);
-
-  cue.vx=(dx/power)*power*0.35;
-  cue.vy=(dy/power)*power*0.35;
-};
-
-// ===== تصادم فيزيائي احترافي =====
-function collide(a,b){
-  if(a.inPocket||b.inPocket) return;
-
-  let dx=b.x-a.x;
-  let dy=b.y-a.y;
-  let dist=Math.hypot(dx,dy);
-
-  if(dist<a.r+b.r){
-    let nx=dx/dist;
-    let ny=dy/dist;
-
-    let p=2*(a.vx*nx+a.vy*ny - b.vx*nx - b.vy*ny)/(a.mass+b.mass);
-
-    a.vx-=p*a.mass*nx;
-    a.vy-=p*a.mass*ny;
-    b.vx+=p*b.mass*nx;
-    b.vy+=p*b.mass*ny;
-
-    let overlap=(a.r+b.r-dist)/2;
-    a.x-=nx*overlap;
-    a.y-=ny*overlap;
-    b.x+=nx*overlap;
-    b.y+=ny*overlap;
-  }
-}
-
-// ===== الطاولة =====
-function drawTable(){
-  ctx.fillStyle="#0f6a4d";
-  ctx.fillRect(table.x,table.y,table.w,table.h);
-
-  ctx.strokeStyle="#3b2412";
-  ctx.lineWidth=18;
-  ctx.strokeRect(table.x,table.y,table.w,table.h);
-}
-
-// ===== الهدف =====
-function drawAim(){
-  if(mouse.down){
-    ctx.beginPath();
-    ctx.setLineDash([6,6]);
-    ctx.strokeStyle="rgba(255,255,255,0.8)";
-    ctx.moveTo(cue.x,cue.y);
-    ctx.lineTo(mouse.x,mouse.y);
-    ctx.stroke();
-    ctx.setLineDash([]);
-  }
-}
-
-// ===== loop =====
-function loop(){
-  ctx.clearRect(0,0,c.width,c.height);
-
-  drawTable();
-  drawAim();
-
-  for(let b of balls) b.update();
-
-  for(let i=0;i<balls.length;i++){
-    for(let j=i+1;j<balls.length;j++){
-      collide(balls[i],balls[j]);
+        // رقم الكرة
+        if (this.number !== 0) {
+            ctx.fillStyle = "white";
+            if(this.number > 8) ctx.fillStyle = "white"; // كرات الخطوط
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, BALL_RADIUS/2, 0, Math.PI*2);
+            ctx.fillStyle = "white";
+            ctx.fill();
+            
+            ctx.fillStyle = "black";
+            ctx.font = "bold 10px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText(this.number, this.x, this.y + 4);
+        }
     }
-  }
 
-  for(let b of balls) b.draw();
+    update() {
+        if (this.inPocket) return;
 
-  requestAnimationFrame(loop);
+        this.x += this.vx;
+        this.y += this.vy;
+
+        // تطبيق الاحتكاك
+        this.vx *= FRICTION;
+        this.vy *= FRICTION;
+
+        if (Math.abs(this.vx) < 0.1) this.vx = 0;
+        if (Math.abs(this.vy) < 0.1) this.vy = 0;
+
+        // الارتداد من الحواف
+        if (this.x - BALL_RADIUS < 0 || this.x + BALL_RADIUS > canvas.width) {
+            this.vx = -this.vx * WALL_BOUNCE;
+            this.x = this.x < BALL_RADIUS ? BALL_RADIUS : canvas.width - BALL_RADIUS;
+        }
+        if (this.y - BALL_RADIUS < 0 || this.y + BALL_RADIUS > canvas.height) {
+            this.vy = -this.vy * WALL_BOUNCE;
+            this.y = this.y < BALL_RADIUS ? BALL_RADIUS : canvas.height - BALL_RADIUS;
+        }
+
+        // تفقد الحفر
+        pockets.forEach(p => {
+            const dist = Math.hypot(this.x - p.x, this.y - p.y);
+            if (dist < 25) {
+                this.inPocket = true;
+                this.vx = 0; this.vy = 0;
+                if (this.number === 0) setTimeout(() => resetCueBall(), 500);
+            }
+        });
+    }
 }
 
-loop();
-</script>
-</body>
-</html>
+function initBalls() {
+    balls = [];
+    // الكرة البيضاء
+    balls.push(new Ball(200, 200, 0, colors[0]));
+
+    // ترتيب كرات المثلث
+    let startX = 550;
+    let startY = 200;
+    let count = 1;
+    for (let i = 0; i < 5; i++) {
+        for (let j = 0; j <= i; j++) {
+            balls.push(new Ball(startX + i * 22, startY - (i * 11) + j * 23, count, colors[count]));
+            count++;
+        }
+    }
+}
+
+function resetCueBall() {
+    const cue = balls[0];
+    cue.x = 200; cue.y = 200;
+    cue.vx = 0; cue.vy = 0;
+    cue.inPocket = false;
+}
+
+function resetGame() {
+    initBalls();
+}
+
+/**
+ * فيزياء التصادم بين الكرات
+ */
+function resolveCollision(b1, b2) {
+    const dx = b2.x - b1.x;
+    const dy = b2.y - b1.y;
+    const distance = Math.hypot(dx, dy);
+
+    if (distance < BALL_RADIUS * 2) {
+        // منع التداخل
+        const overlap = BALL_RADIUS * 2 - distance;
+        const nx = dx / distance;
+        const ny = dy / distance;
+        b1.x -= nx * overlap / 2;
+        b1.y -= ny * overlap / 2;
+        b2.x += nx * overlap / 2;
+        b2.y += ny * overlap / 2;
+
+        // تبادل السرعات (Elastic Collision)
+        const v1n = b1.vx * nx + b1.vy * ny;
+        const v2n = b2.vx * nx + b2.vy * ny;
+
+        b1.vx += (v2n - v1n) * nx;
+        b1.vy += (v2n - v1n) * ny;
+        b2.vx += (v1n - v2n) * nx;
+        b2.vy += (v1n - v2n) * ny;
+    }
+}
+
+/**
+ * إدارة المدخلات
+ */
+canvas.addEventListener('mousedown', e => {
+    if (balls[0].vx === 0 && balls[0].vy === 0) isDragging = true;
+});
+
+window.addEventListener('mousemove', e => {
+    const rect = canvas.getBoundingClientRect();
+    mousePos.x = e.clientX - rect.left;
+    mousePos.y = e.clientY - rect.top;
+});
+
+window.addEventListener('mouseup', () => {
+    if (isDragging) {
+        const cue = balls[0];
+        const dx = cue.x - mousePos.x;
+        const dy = cue.y - mousePos.y;
+        const angle = Math.atan2(dy, dx);
+        const power = document.getElementById('powerRange').value / 5;
+
+        cue.vx = Math.cos(angle) * power;
+        cue.vy = Math.sin(angle) * power;
+
+        // تطبيق تأثير السبن (بشكل مبسط)
+        cue.vx += spin.x * 2;
+        cue.vy += spin.y * 2;
+
+        isDragging = false;
+    }
+});
+
+spinPad.addEventListener('mousedown', e => {
+    const rect = spinPad.getBoundingClientRect();
+    const x = e.clientX - rect.left - 30;
+    const y = e.clientY - rect.top - 30;
+    spinMarker.style.left = (e.clientX - rect.left) + 'px';
+    spinMarker.style.top = (e.clientY - rect.top) + 'px';
+    spin.x = x / 30;
+    spin.y = y / 30;
+});
+
+/**
+ * حلقة اللعبة الرئيسية
+ */
+function update() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // رسم الطاولة (اللباد الأخضر)
+    ctx.fillStyle = "#2e7d32";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // رسم الحفر
+    ctx.fillStyle = "#111";
+    pockets.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x,
