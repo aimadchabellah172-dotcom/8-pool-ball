@@ -2,84 +2,114 @@
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <title>Billiards Master Ultra HD</title>
+    <title>8-Ball Pool Master - Legendary Edition</title>
     <style>
+        :root { --bg-dark: #080a0f; --table-blue: #2a699c; --wood-dark: #3e2723; }
         body { 
-            background: #05070a; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            height: 100vh; margin: 0; color: white; font-family: 'Segoe UI', Arial; overflow: hidden; 
+            background-color: var(--bg-dark); color: white;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100vh; margin: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden;
         }
-        #gameWrapper { position: relative; padding: 20px; background: #1a1a1a; border-radius: 20px; box-shadow: 0 0 150px rgba(0,0,0,1); }
-        canvas { border-radius: 10px; cursor: crosshair; }
-        #powerUI {
-            position: absolute; right: -50px; top: 100px; width: 25px; height: 250px;
-            background: #111; border: 2px solid #333; border-radius: 12px; overflow: hidden;
+
+        /* واجهة المستخدم العلوية HUD */
+        #topUI {
+            width: 940px; display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 0; z-index: 10;
         }
-        #powerFill { width: 100%; position: absolute; bottom: 0; background: linear-gradient(to top, #ff0000, #ffea00, #00ff00); transition: 0.1s; }
+        .player-card { display: flex; align-items: center; gap: 15px; background: rgba(255,255,255,0.05); padding: 5px 20px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); }
+        .avatar { width: 50px; height: 50px; border-radius: 10px; border: 2px solid #ffd700; background-size: cover; position: relative; }
+        .level-badge { position: absolute; bottom: -5px; right: -5px; background: #4caf50; font-size: 10px; padding: 2px 5px; border-radius: 5px; }
+        .p-name { font-weight: bold; font-size: 18px; }
+        .match-info { text-align: center; }
+        .coin-prize { color: #ffd700; font-weight: bold; font-size: 20px; text-shadow: 0 0 10px rgba(255,215,0,0.5); }
+
+        /* منطقة الطاولة */
+        #container { position: relative; }
+        canvas { 
+            border: 22px solid var(--wood-dark); 
+            border-radius: 15px; 
+            box-shadow: 0 25px 80px rgba(0,0,0,0.9), inset 0 0 50px rgba(0,0,0,0.5);
+            background-color: var(--table-blue);
+        }
+
+        /* مقياس القوة الجانبي */
+        #powerMeter {
+            position: absolute; right: -60px; top: 100px; width: 35px; height: 280px;
+            background: #111; border: 3px solid #333; border-radius: 8px; overflow: hidden;
+        }
+        #powerInner { width: 100%; position: absolute; bottom: 0; background: linear-gradient(to top, #f44336, #ffeb3b, #4caf50); transition: height 0.05s; }
     </style>
 </head>
 <body>
 
-    <div id="gameWrapper">
-        <canvas id="poolCanvas" width="940" height="490"></canvas>
-        <div id="powerUI"><div id="powerFill" style="height: 0%"></div></div>
+    <div id="topUI">
+        <div class="player-card">
+            <div class="avatar" style="background-image: url('https://via.placeholder.com/50/green/white?text=S')"><div class="level-badge">43</div></div>
+            <div><div class="p-name">Susan</div><div style="font-size: 12px; color: #888;">●●●●●○○</div></div>
+        </div>
+        <div class="match-info">
+            <div style="background: #b71c1c; padding: 2px 15px; border-radius: 10px; font-size: 12px; margin-bottom: 5px;">MATCH</div>
+            <div class="coin-prize">🪙 100</div>
+        </div>
+        <div class="player-card" style="flex-direction: row-reverse; text-align: right;">
+            <div class="avatar" style="background-image: url('https://via.placeholder.com/50/red/white?text=B')"><div class="level-badge" style="background: #f44336;">78</div></div>
+            <div><div class="p-name">Brian</div><div style="font-size: 12px; color: #888;">○○○○○○○</div></div>
+        </div>
+    </div>
+
+    <div id="container">
+        <canvas id="poolCanvas" width="940" height="470"></canvas>
+        <div id="powerMeter"><div id="powerInner" style="height: 0%"></div></div>
     </div>
 
 <script>
 const canvas = document.getElementById('poolCanvas');
 const ctx = canvas.getContext('2d');
 
-// الثوابت
-const BALL_R = 13;
-const POCKET_R = 28;
-const FRICTION = 0.985;
-const COLORS = ["#FFFFFF", "#FFD600", "#0D47A1", "#B71C1C", "#4A148C", "#E65100", "#1B5E20", "#4E342E", "#000000", "#FFEB3B", "#2196F3", "#F44336", "#9C27B0", "#FF9800", "#4CAF50", "#D32F2F"];
+// --- إعدادات المحرك ---
+const BALL_R = 14;
+const POCKET_R = 30;
+const FRICTION = 0.988;
+const WALL_BOUNCE = 0.75;
+const BALL_COLORS = ["#FFF", "#FFD600", "#0D47A1", "#D32F2F", "#4A148C", "#FF6D00", "#1B5E20", "#3E2723", "#000", "#FFEE58", "#42A5F5", "#EF5350", "#AB47BC", "#FFAB40", "#66BB6A", "#C62828"];
 
 let balls = [];
 let cueBall;
 let isDragging = false;
 let mouse = { x: 0, y: 0 };
+let currentPower = 0;
 
 class Ball {
     constructor(x, y, color, num, isCue = false) {
-        this.x = x; this.y = y;
-        this.vx = 0; this.vy = 0;
-        this.color = color;
-        this.num = num;
-        this.isCue = isCue;
+        this.x = x; this.y = y; this.vx = 0; this.vy = 0;
+        this.color = color; this.num = num; this.isCue = isCue;
         this.inPocket = false;
     }
 
     draw() {
         if (this.inPocket) return;
 
-        // ظل الكرة على القماش
+        // الظل الواقعي
         ctx.save();
-        ctx.shadowBlur = 10; ctx.shadowColor = "rgba(0,0,0,0.6)";
-        ctx.shadowOffsetX = 5; ctx.shadowOffsetY = 5;
+        ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 10; ctx.shadowOffsetX = 5; ctx.shadowOffsetY = 5;
 
-        // الكرة 3D
-        let grad = ctx.createRadialGradient(this.x - 4, this.y - 4, 1, this.x, this.y, BALL_R);
-        grad.addColorStop(0, "#ffffff");
-        grad.addColorStop(0.3, this.color);
-        grad.addColorStop(1, "#000");
+        // جسم الكرة بتدرج مركب (Specular Highlight)
+        let g = ctx.createRadialGradient(this.x - 5, this.y - 5, 2, this.x, this.y, BALL_R);
+        g.addColorStop(0, "#fff");
+        g.addColorStop(0.2, this.color);
+        g.addColorStop(1, "#000");
 
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, BALL_R, 0, Math.PI * 2);
-        ctx.fillStyle = grad;
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(this.x, this.y, BALL_R, 0, Math.PI*2);
+        ctx.fillStyle = g; ctx.fill();
         ctx.restore();
 
-        // الرقم
+        // الرقم والتصميم
         if (!this.isCue) {
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, BALL_R * 0.45, 0, Math.PI * 2);
-            ctx.fillStyle = "white";
-            ctx.fill();
-            ctx.fillStyle = "black";
-            ctx.font = "bold 9px Arial";
-            ctx.textAlign = "center";
-            ctx.fillText(this.num, this.x, this.y + 3);
+            ctx.beginPath(); ctx.arc(this.x, this.y, BALL_R*0.5, 0, Math.PI*2);
+            ctx.fillStyle = "white"; ctx.fill();
+            ctx.fillStyle = "black"; ctx.font = "bold 10px Arial"; ctx.textAlign = "center";
+            ctx.fillText(this.num, this.x, this.y + 3.5);
         }
     }
 
@@ -87,62 +117,31 @@ class Ball {
         if (this.inPocket) return;
         this.x += this.vx; this.y += this.vy;
         this.vx *= FRICTION; this.vy *= FRICTION;
-        
         if (Math.hypot(this.vx, this.vy) < 0.1) { this.vx = 0; this.vy = 0; }
 
-        // تصادم الحواف (مع مراعاة سمك الخشب 20px)
-        const wall = 35; 
-        if (this.x < wall + BALL_R || this.x > canvas.width - wall - BALL_R) {
-            this.vx *= -0.7;
-            this.x = this.x < wall + BALL_R ? wall + BALL_R : canvas.width - wall - BALL_R;
+        // تصادم الحواف (Cushions)
+        const margin = 10; 
+        if (this.x < BALL_R + margin || this.x > canvas.width - BALL_R - margin) {
+            this.vx *= -WALL_BOUNCE;
+            this.x = this.x < BALL_R + margin ? BALL_R + margin : canvas.width - BALL_R - margin;
         }
-        if (this.y < wall + BALL_R || this.y > canvas.height - wall - BALL_R) {
-            this.vy *= -0.7;
-            this.y = this.y < wall + BALL_R ? wall + BALL_R : canvas.height - wall - BALL_R;
+        if (this.y < BALL_R + margin || this.y > canvas.height - BALL_R - margin) {
+            this.vy *= -WALL_BOUNCE;
+            this.y = this.y < BALL_R + margin ? BALL_R + margin : canvas.height - BALL_R - margin;
         }
     }
 }
 
-function initTable() {
+function setupBalls() {
     balls = [];
-    cueBall = new Ball(250, canvas.height/2, "#FFFFFF", 0, true);
+    cueBall = new Ball(250, canvas.height/2, "#FFF", 0, true);
     balls.push(cueBall);
 
+    // ترتيب المثلث الاحترافي
     let count = 1;
-    const startX = 650;
+    const startX = 640;
     for (let r = 0; r < 5; r++) {
         for (let i = 0; i <= r; i++) {
-            balls.push(new Ball(startX + r*23, (canvas.height/2 - r*14) + i*28, COLORS[count], count));
-            count++;
-        }
-    }
-}
-
-function drawTable() {
-    // 1. الإطار الخشبي الخارجي
-    ctx.fillStyle = "#3e2723";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // 2. الحواف الداخلية (Cushions) بظل
-    ctx.fillStyle = "#263238"; 
-    ctx.fillRect(20, 20, canvas.width - 40, canvas.height - 40);
-
-    // 3. القماش الأزرق الفاخر
-    let clothGrad = ctx.createRadialGradient(470, 245, 100, 470, 245, 500);
-    clothGrad.addColorStop(0, "#2a699c");
-    clothGrad.addColorStop(1, "#1a4a70");
-    ctx.fillStyle = clothGrad;
-    ctx.fillRect(35, 35, canvas.width - 70, canvas.height - 70);
-
-    // 4. الخط الأبيض
-    ctx.strokeStyle = "rgba(255,255,255,0.2)";
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(250, 35); ctx.lineTo(250, 455); ctx.stroke();
-
-    // 5. الفتحات (Pockets) - تم تحسين البرمجة لتكون في الزوايا بالضبط
-    const holes = [
-        [35, 35], [470, 25], [905, 35],
-        [35, 455], [470, 465], [905, 455]
-    ];
-    ctx.shadowBlur = 15; ctx.shadowColor = "black";
-    holes.forEach
+            let color = BALL_COLORS[count];
+            if (r === 2 && i === 1) color = "#000"; // الكرة 8 السوداء في المنتصف
+            balls.push(new Ball(startX + r*
