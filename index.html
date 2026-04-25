@@ -2,112 +2,124 @@
 <html lang="ar">
 <head>
 <meta charset="UTF-8" />
-<title>لعبة بلياردو متطورة</title>
+<title>بلياردو متطور 3D</title>
 <style>
-body{margin:0;background:#0b3d2e;overflow:hidden;font-family:Arial}
-canvas{display:block;margin:auto;background:#0a5a3c}
-#ui{position:fixed;top:10px;left:10px;color:#fff}
+body{margin:0;overflow:hidden;background:radial-gradient(#0d5a3f,#06281c);font-family:Arial}
+canvas{display:block;margin:auto}
+#ui{
+position:fixed;top:10px;left:10px;color:#fff;
+background:rgba(0,0,0,0.4);
+padding:10px;border-radius:10px
+}
 </style>
 </head>
 <body>
-<div id="ui">اسحب وحدد القوة - خط التصويب يظهر تلقائياً</div>
+<div id="ui">
+اسحب لتحديد القوة | تحكم بالسبن عبر الحركة السريعة للماوس
+</div>
 <canvas id="c"></canvas>
 <script>
-const canvas=document.getElementById('c');
-const ctx=canvas.getContext('2d');
-canvas.width=window.innerWidth;
-canvas.height=window.innerHeight;
+const c=document.getElementById('c');
+const ctx=c.getContext('2d');
+c.width=innerWidth;c.height=innerHeight;
 
-const FRICTION=0.985;
-const BALL_R=14;
+const FRICTION=0.986;
+const BALL_R=16;
 
 class Ball{
   constructor(x,y,color,id){
     this.x=x;this.y=y;
     this.vx=0;this.vy=0;
-    this.ax=0;this.ay=0;
     this.r=BALL_R;
     this.color=color;
     this.id=id;
     this.spin=0;
+    this.glow=Math.random()*5;
   }
+
   draw(){
     ctx.save();
     ctx.translate(this.x,this.y);
-    ctx.rotate(this.spin);
+
+    // ظل أرضي (3D effect)
     ctx.beginPath();
-    ctx.fillStyle=this.color;
+    ctx.fillStyle="rgba(0,0,0,0.3)";
+    ctx.ellipse(3,6,this.r*0.9,this.r*0.6,0,0,Math.PI*2);
+    ctx.fill();
+
+    // كرة مع تدرج (3D look)
+    let grad=ctx.createRadialGradient(-5,-5,2,0,0,this.r);
+    grad.addColorStop(0,"#fff");
+    grad.addColorStop(0.2,this.color);
+    grad.addColorStop(1,"#000");
+
+    ctx.beginPath();
+    ctx.fillStyle=grad;
     ctx.arc(0,0,this.r,0,Math.PI*2);
     ctx.fill();
 
-    // خط دوران (spin indicator)
+    // خط سبن
+    ctx.rotate(this.spin);
     ctx.beginPath();
-    ctx.strokeStyle="#fff";
+    ctx.strokeStyle="rgba(255,255,255,0.8)";
+    ctx.lineWidth=2;
     ctx.moveTo(0,0);
     ctx.lineTo(this.r,0);
     ctx.stroke();
 
     ctx.restore();
   }
-  update(){
-    this.vx+=this.ax;
-    this.vy+=this.ay;
 
+  update(){
     this.x+=this.vx;
     this.y+=this.vy;
 
+    // احتكاك واقعي
     this.vx*=FRICTION;
     this.vy*=FRICTION;
 
-    this.spin+=this.vx*0.02;
+    // سبن متقدم (يتأثر بالقوة)
+    this.spin+=this.vx*0.03 + this.vy*0.02;
 
-    // الجدران
-    if(this.x<this.r||this.x>canvas.width-this.r){
-      this.vx*=-1;
-    }
-    if(this.y<this.r||this.y>canvas.height-this.r){
-      this.vy*=-1;
-    }
+    // جدران
+    if(this.x<this.r||this.x>c.width-this.r){this.vx*=-0.9;}
+    if(this.y<this.r||this.y>c.height-this.r){this.vy*=-0.9;}
   }
 }
 
 let balls=[];
-
-// الكرة البيضاء
-let cue=new Ball(200,200,"#ffffff",0);
+let cue=new Ball(250,300,"#ffffff",0);
 balls.push(cue);
 
-// ترتيب كرات
 for(let i=0;i<10;i++){
-  balls.push(new Ball(500+Math.random()*100,200+i*30,
-  `hsl(${i*36},80%,50%)`,i+1));
+  balls.push(new Ball(600+(i%5)*30,300+Math.floor(i/5)*30,
+  `hsl(${i*36},90%,55%)`,i+1));
 }
 
 let mouse={x:0,y:0,down:false};
+let power=0;
 
-canvas.addEventListener('mousemove',e=>{
-  mouse.x=e.clientX;
-  mouse.y=e.clientY;
-});
-
-canvas.addEventListener('mousedown',()=>mouse.down=true);
-canvas.addEventListener('mouseup',()=>{
+c.onmousemove=e=>{mouse.x=e.clientX;mouse.y=e.clientY;};
+c.onmousedown=()=>{mouse.down=true;power=0;};
+c.onmouseup=()=>{
   mouse.down=false;
 
-  // ضرب الكرة
   let dx=cue.x-mouse.x;
   let dy=cue.y-mouse.y;
-  cue.vx=dx*0.15;
-  cue.vy=dy*0.15;
-});
+
+  cue.vx=dx*0.18;
+  cue.vy=dy*0.18;
+};
 
 function collide(a,b){
   let dx=b.x-a.x;
   let dy=b.y-a.y;
-  let dist=Math.sqrt(dx*dx+dy*dy);
+  let dist=Math.hypot(dx,dy);
+
   if(dist<a.r+b.r){
     let angle=Math.atan2(dy,dx);
-    let force=0.5;
+
+    let force=0.6;
     a.vx-=Math.cos(angle)*force;
     a.vy-=Math.sin(angle)*force;
     b.vx+=Math.cos(angle)*force;
@@ -118,22 +130,36 @@ function collide(a,b){
 function drawAim(){
   if(mouse.down){
     ctx.beginPath();
-    ctx.strokeStyle="rgba(255,255,255,0.6)";
+    ctx.strokeStyle="rgba(255,255,255,0.8)";
+    ctx.lineWidth=2;
+
     ctx.moveTo(cue.x,cue.y);
-    ctx.lineTo(mouse.x,mouse.y);
+
+    // خط متطور (متقطع)
+    let dx=cue.x-mouse.x;
+    let dy=cue.y-mouse.y;
+    let len=Math.hypot(dx,dy);
+
+    for(let i=0;i<len;i+=10){
+      let x=cue.x-(dx/len)*i;
+      let y=cue.y-(dy/len)*i;
+      ctx.lineTo(x,y);
+    }
+
     ctx.stroke();
+
+    // قوة
+    ctx.fillStyle="#fff";
+    ctx.fillText("Power: "+Math.min(len/10,100).toFixed(0),mouse.x,mouse.y);
   }
 }
 
 function loop(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.clearRect(0,0,c.width,c.height);
 
   drawAim();
 
-  for(let b of balls){
-    b.update();
-    b.draw();
-  }
+  for(let b of balls){b.update();b.draw();}
 
   for(let i=0;i<balls.length;i++){
     for(let j=i+1;j<balls.length;j++){
