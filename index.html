@@ -1,163 +1,586 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>8-Ball Pool Legendary - Fixed Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>برو بلياردو إيليت | Pro 8-Ball Elite</title>
     <style>
-        /* إعدادات الخلفية العامة للموقع */
-        body { 
-            background-color: #0b0f19; /* خلفية الموقع زرقاء داكنة جداً وليست سوداء تماماً */
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            height: 100vh; margin: 0; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+
+        :root {
+            --table-color: #1a3818;
+            --rail-color: #3d2418;
+            --bg-color: #0a0a0a;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: white;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
             overflow: hidden;
+            user-select: none;
         }
 
-        /* حاوية اللعبة لضمان ظهور كل شيء في مكانه */
-        #gameContainer {
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            font-style: italic;
+            margin: 0;
+            background: linear-gradient(45deg, #4ade80, #10b981);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: -2px;
+        }
+
+        .header p {
+            font-size: 0.7rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            margin-top: 5px;
+        }
+
+        .game-container {
             position: relative;
-            padding: 10px;
-            background: #151b26;
+            padding: 15px;
+            background: #2d1810;
+            border-radius: 40px;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,0,0,0.5);
+            border: 12px solid var(--rail-color);
+        }
+
+        canvas {
+            display: block;
+            background-color: var(--table-color);
             border-radius: 15px;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            cursor: crosshair;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.5);
         }
 
-        /* الواجهة العلوية HUD */
-        #headerUI {
-            width: 900px; display: flex; justify-content: space-between; align-items: center;
-            padding: 10px 20px; box-sizing: border-box;
-        }
-        .player-info { display: flex; align-items: center; gap: 12px; }
-        .avatar { 
-            width: 50px; height: 50px; border-radius: 8px; border: 2px solid #fbc02d;
-            background: #333; display: flex; align-items: center; justify-content: center; font-weight: bold;
-        }
-        .details b { font-size: 18px; display: block; }
-        .details span { color: #888; font-size: 12px; }
-
-        .match-badge {
-            background: #d32f2f; padding: 4px 15px; border-radius: 20px; font-weight: bold;
-            font-size: 12px; box-shadow: 0 2px 10px rgba(211,47,47,0.4);
-        }
-        .prize-money { color: #ffd700; font-size: 22px; font-weight: bold; text-align: center; margin-top: 5px; }
-
-        /* منطقة الطاولة والقوة */
-        #mainArea { display: flex; align-items: center; gap: 20px; }
-        
-        canvas { 
-            background-color: #2a699c; /* لون القماش الأزرق الظاهر في الصورة */
-            border: 18px solid #7b1e1e; /* الحواف الخشبية الحمراء */
-            border-radius: 12px;
-            box-shadow: inset 0 0 40px rgba(0,0,0,0.5);
+        .controls-overlay {
+            position: absolute;
+            right: -100px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
         }
 
-        /* مقياس القوة الجانبي المطور */
-        #powerBarWrapper {
-            width: 35px; height: 350px; background: #111; border: 2px solid #444;
-            border-radius: 8px; position: relative; overflow: hidden;
+        .spin-control {
+            width: 80px;
+            height: 80px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
         }
-        #powerLevel {
-            width: 100%; position: absolute; bottom: 0;
-            background: linear-gradient(to top, #ff1744, #ffea00, #00e676);
-            transition: height 0.05s ease;
+
+        .spin-control:hover {
+            background: rgba(255,255,255,0.1);
         }
+
+        .spin-panel {
+            position: absolute;
+            right: 0;
+            background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(20px);
+            padding: 20px;
+            border-radius: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+            display: none;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        .spin-panel.active { display: flex; }
+
+        .cue-ball-spin-ui {
+            width: 100px;
+            height: 100px;
+            background: white;
+            border-radius: 50%;
+            position: relative;
+            cursor: crosshair;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.2);
+        }
+
+        .spin-marker {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: red;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            box-shadow: 0 0 10px rgba(255,0,0,0.5);
+        }
+
+        .power-meter {
+            position: absolute;
+            left: -80px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 250px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .power-bar {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 0%;
+            background: linear-gradient(to top, #c2410c, #fbbf24, #fff);
+            transition: height 0.1s;
+        }
+
+        .btn-reset {
+            position: absolute;
+            right: -100px;
+            top: 30px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            padding: 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-reset:hover { background: rgba(255,255,255,0.2); }
+
+        .hud-top {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            display: flex;
+            gap: 5px;
+        }
+
+        .sunk-ball {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+
+        .instructions {
+            margin-top: 30px;
+            display: flex;
+            gap: 40px;
+            color: #444;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .instructions span b { color: #888; margin-right: 5px; }
     </style>
 </head>
 <body>
 
-    <div id="headerUI">
-        <div class="player-info">
-            <div class="avatar" style="background: linear-gradient(45deg, #1b5e20, #4caf50);">S</div>
-            <div class="details"><b>Susan</b><span>Level 43 ★</span></div>
-        </div>
-        
-        <div>
-            <div class="match-badge">MATCH</div>
-            <div class="prize-money">🪙 100</div>
-        </div>
-
-        <div class="player-info" style="flex-direction: row-reverse; text-align: right;">
-            <div class="avatar" style="background: linear-gradient(45deg, #b71c1c, #f44336);">B</div>
-            <div class="details"><b>Brian</b><span>Level 78 ★</span></div>
-        </div>
+    <div class="header">
+        <h1>PRO 8-BALL ELITE</h1>
+        <p>Advanced Physics Simulator</p>
     </div>
 
-    <div id="gameContainer">
-        <div id="mainArea">
-            <canvas id="poolCanvas" width="900" height="450"></canvas>
-            <div id="powerBarWrapper">
-                <div id="powerLevel" style="height: 0%"></div>
+    <div class="game-container">
+        <canvas id="poolCanvas" width="900" height="450"></canvas>
+        
+        <div class="hud-top" id="sunkBallsHud"></div>
+
+        <div class="power-meter">
+            <div class="power-bar" id="powerBar"></div>
+        </div>
+
+        <button class="btn-reset" onclick="resetGame()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        </button>
+
+        <div class="controls-overlay">
+            <div class="spin-control" onclick="toggleSpinPanel()">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            </div>
+            
+            <div class="spin-panel" id="spinPanel">
+                <div class="cue-ball-spin-ui" id="spinSelector">
+                    <div class="spin-marker" id="spinMarker" style="left:50%; top:50%;"></div>
+                </div>
+                <button class="btn-reset" style="position:static; padding:10px; font-size:10px; width:100%" onclick="resetSpin()">إعادة ضبط الدوران</button>
             </div>
         </div>
     </div>
 
-<script>
-const canvas = document.getElementById('poolCanvas');
-const ctx = canvas.getContext('2d');
+    <div class="instructions">
+        <span>تحريك الماوس: <b>توجيه الضرب</b></span>
+        <span>الضغط والسحب: <b>تحديد القوة</b></span>
+        <span>الإفلات: <b>إطلاق الكرة</b></span>
+    </div>
 
-// --- إعدادات المحرك ---
-const BALL_R = 14;
-const POCKET_R = 32;
-const FRICTION = 0.988; // احتكاك واقعي جداً
-const COLORS = ["#FFFFFF", "#fdd835", "#1565c0", "#c62828", "#6a1b9a", "#ef6c00", "#2e7d32", "#4e342e", "#111111", "#fff176", "#64b5f6", "#e57373", "#ba68c8", "#ffb74d", "#81c784", "#a1887f"];
+    <script>
+        const canvas = document.getElementById('poolCanvas');
+        const ctx = canvas.getContext('2d');
+        const powerBar = document.getElementById('powerBar');
+        const spinPanel = document.getElementById('spinPanel');
+        const spinMarker = document.getElementById('spinMarker');
+        const spinSelector = document.getElementById('spinSelector');
+        const sunkHud = document.getElementById('sunkBallsHud');
 
-let balls = [];
-let cueBall;
-let isDragging = false;
-let mouse = { x: 0, y: 0 };
-let currentPower = 0;
+        // --- CONSTANTS ---
+        const BALL_RADIUS = 12;
+        const POCKET_RADIUS = 28;
+        const FRICTION = 0.988;
+        const WALL_BOUNCE = 0.75;
+        const BALL_BOUNCE = 0.96;
+        const CUE_LENGTH = 350;
 
-class Ball {
-    constructor(x, y, color, num, isCue = false) {
-        this.x = x; this.y = y;
-        this.vx = 0; this.vy = 0;
-        this.color = color;
-        this.num = num;
-        this.isCue = isCue;
-        this.inPocket = false;
-    }
+        const BALL_COLORS = [
+            '#FFFFFF', // Cue
+            '#FFD700', '#0033FF', '#EE0000', '#660099', '#FF8800', '#008800', '#991111', '#111111',
+            '#FFD700', '#0033FF', '#EE0000', '#660099', '#FF8800', '#008800', '#991111'
+        ];
 
-    draw() {
-        if (this.inPocket) return;
+        // --- STATE ---
+        let balls = [];
+        let isMoving = false;
+        let isDragging = false;
+        let cueAngle = 0;
+        let power = 0;
+        let spin = { x: 0, y: 0 };
+        let shake = 0;
+        let mousePos = { x: 0, y: 0 };
 
-        // الظل السفلي للكرة
-        ctx.save();
-        ctx.shadowBlur = 10; ctx.shadowColor = "rgba(0,0,0,0.5)";
-        ctx.shadowOffsetX = 4; ctx.shadowOffsetY = 4;
+        // --- INITIALIZATION ---
+        function resetGame() {
+            balls = [];
+            // Cue Ball
+            balls.push({
+                id: 0, 
+                pos: { x: canvas.width / 4, y: canvas.height / 2 },
+                vel: { x: 0, y: 0 },
+                spin: { x: 0, y: 0 },
+                isSunk: false,
+                color: BALL_COLORS[0],
+                isStripe: false
+            });
 
-        // رسم الكرة بتدرج ثلاثي الأبعاد
-        let grad = ctx.createRadialGradient(this.x - 5, this.y - 5, 2, this.x, this.y, BALL_R);
-        grad.addColorStop(0, "#ffffff"); // لمعة الضوء
-        grad.addColorStop(0.3, this.color);
-        grad.addColorStop(1, "#000000");
-
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, BALL_R, 0, Math.PI * 2);
-        ctx.fillStyle = grad;
-        ctx.fill();
-        ctx.restore();
-
-        // رسم الرقم (الدائرة البيضاء والعدد)
-        if (!this.isCue) {
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, BALL_R * 0.5, 0, Math.PI * 2);
-            ctx.fillStyle = "white";
-            ctx.fill();
-            ctx.fillStyle = "black";
-            ctx.font = "bold 10px Arial";
-            ctx.textAlign = "center";
-            ctx.fillText(this.num, this.x, this.y + 4);
+            // Rack
+            const startX = (canvas.width * 3) / 4 - 40;
+            const startY = canvas.height / 2;
+            const order = [1, 9, 2, 10, 8, 3, 11, 7, 14, 4, 12, 15, 6, 13, 5];
+            let k = 0;
+            for(let row = 0; row < 5; row++) {
+                for(let col = 0; col <= row; col++) {
+                    balls.push({
+                        id: order[k],
+                        pos: { 
+                            x: startX + row * (BALL_RADIUS * 1.85),
+                            y: startY + (col - row / 2) * (BALL_RADIUS * 2.1)
+                        },
+                        vel: { x: 0, y: 0 },
+                        spin: { x: 0, y: 0 },
+                        isSunk: false,
+                        color: BALL_COLORS[order[k]],
+                        isStripe: order[k] > 8
+                    });
+                    k++;
+                }
+            }
+            updateHud();
         }
-    }
 
-    update() {
-        if (this.inPocket) return;
-        this.x += this.vx; this.y += this.vy;
-        this.vx *= FRICTION; this.vy *= FRICTION;
+        // --- PHYSICS ---
+        function updatePhysics() {
+            const SUB_STEPS = 8;
+            let totalImpulse = 0;
 
-        if (Math.hypot(this.vx, this.vy) < 0.1) { this.vx = 0; this.vy = 0; }
+            for(let s = 0; s < SUB_STEPS; s++) {
+                balls.forEach(b => {
+                    if (b.isSunk) return;
 
-        // تصادم الحواف
-        const wall = 10;
-        if (this.x < BALL_R + wall || this.x > canvas.width - BALL_R - wall) {
-            this.vx *= -0.8;
-            this.x = this.x
+                    // Update Position
+                    b.pos.x += b.vel.x * (1/SUB_STEPS);
+                    b.pos.y += b.vel.y * (1/SUB_STEPS);
+
+                    // Friction
+                    b.vel.x *= FRICTION;
+                    b.vel.y *= FRICTION;
+                    
+                    // Spin Decay
+                    b.spin.x *= 0.98;
+                    b.spin.y *= 0.98;
+
+                    // Spin Effect follow/draw
+                    b.vel.x += b.spin.y * b.vel.x * 0.005;
+                    b.vel.y += b.spin.y * b.vel.y * 0.005;
+
+                    if (Math.abs(b.vel.x) < 0.05) b.vel.x = 0;
+                    if (Math.abs(b.vel.y) < 0.05) b.vel.y = 0;
+
+                    // Wall Collision
+                    if (b.pos.x < BALL_RADIUS) { 
+                        b.pos.x = BALL_RADIUS; b.vel.x *= -WALL_BOUNCE; 
+                        b.vel.y += b.spin.x * 2; // Side spin effect
+                    } else if (b.pos.x > canvas.width - BALL_RADIUS) {
+                        b.pos.x = canvas.width - BALL_RADIUS; b.vel.x *= -WALL_BOUNCE;
+                        b.vel.y -= b.spin.x * 2;
+                    }
+                    if (b.pos.y < BALL_RADIUS) {
+                        b.pos.y = BALL_RADIUS; b.vel.y *= -WALL_BOUNCE;
+                        b.vel.x -= b.spin.x * 2;
+                    } else if (b.pos.y > canvas.height - BALL_RADIUS) {
+                        b.pos.y = canvas.height - BALL_RADIUS; b.vel.y *= -WALL_BOUNCE;
+                        b.vel.x += b.spin.x * 2;
+                    }
+
+                    // Pockets
+                    const pockets = [
+                        {x:0, y:0}, {x:canvas.width/2, y:0}, {x:canvas.width, y:0},
+                        {x:0, y:canvas.height}, {x:canvas.width/2, y:canvas.height}, {x:canvas.width, y:canvas.height}
+                    ];
+                    pockets.forEach(p => {
+                        const dist = Math.sqrt((b.pos.x-p.x)**2 + (b.pos.y-p.y)**2);
+                        if (dist < POCKET_RADIUS) {
+                            b.isSunk = true;
+                            b.vel = {x:0, y:0};
+                            updateHud();
+                            if (b.id === 0) shake = 15;
+                        }
+                    });
+                });
+
+                // Ball-Ball collision
+                for(let i=0; i<balls.length; i++) {
+                    for(let j=i+1; j<balls.length; j++) {
+                        const b1 = balls[i]; const b2 = balls[j];
+                        if (b1.isSunk || b2.isSunk) continue;
+                        
+                        const dx = b2.pos.x - b1.pos.x;
+                        const dy = b2.pos.y - b1.pos.y;
+                        const dist = Math.sqrt(dx*dx + dy*dy);
+
+                        if (dist < BALL_RADIUS * 2) {
+                            // Resolve Overlap
+                            const overlap = BALL_RADIUS * 2 - dist;
+                            const nx = dx / dist; const ny = dy / dist;
+                            b1.pos.x -= nx * overlap/2; b1.pos.y -= ny * overlap/2;
+                            b2.pos.x += nx * overlap/2; b2.pos.y += ny * overlap/2;
+
+                            // Resolve Velocity
+                            const rvx = b2.vel.x - b1.vel.x; const rvy = b2.vel.y - b1.vel.y;
+                            const vNormal = rvx * nx + rvy * ny;
+                            if (vNormal > 0) continue;
+
+                            const impulse = -(1 + BALL_BOUNCE) * vNormal / 2;
+                            b1.vel.x -= impulse * nx; b1.vel.y -= impulse * ny;
+                            b2.vel.x += impulse * nx; b2.vel.y += impulse * ny;
+                            totalImpulse += Math.abs(impulse);
+
+                            // Spin Transfer
+                            if (b1.id === 0) {
+                                b1.vel.x -= nx * b1.spin.y * 1.5;
+                                b1.vel.y -= ny * b1.spin.y * 1.5;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (totalImpulse > 3) shake = Math.min(totalImpulse, 10);
+            
+            const movingNow = balls.some(b => Math.abs(b.vel.x) > 0.05 || Math.abs(b.vel.y) > 0.05);
+            if (isMoving && !movingNow) {
+                isMoving = false;
+                balls.forEach(b => { b.spin = {x:0, y:0}; b.vel = {x:0, y:0}});
+                if (balls[0].isSunk) {
+                    balls[0].isSunk = false;
+                    balls[0].pos = { x: canvas.width/4, y: canvas.height/2 };
+                }
+            }
+        }
+
+        // --- RENDERING ---
+        function draw() {
+            ctx.save();
+            // Screen Shake
+            if (shake > 0.5) ctx.translate((Math.random()-0.5)*shake, (Math.random()-0.5)*shake);
+            shake *= 0.9;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Table Felt
+            ctx.fillStyle = '#1e3a1a';
+            ctx.fillRect(0,0, canvas.width, canvas.height);
+            
+            // Texture
+            ctx.globalAlpha = 0.05;
+            for(let i=0; i<1500; i++) {
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(Math.random()*canvas.width, Math.random()*canvas.height, 1, 1);
+            }
+            ctx.globalAlpha = 1;
+
+            // Pockets
+            ctx.fillStyle = '#111';
+            [{x:0, y:0}, {x:canvas.width/2, y:0}, {x:canvas.width, y:0}, {x:0, y:canvas.height}, {x:canvas.width/2, y:canvas.height}, {x:canvas.width, y:canvas.height}].forEach(p => {
+                ctx.beginPath(); ctx.arc(p.x, p.y, POCKET_RADIUS, 0, Math.PI*2); ctx.fill();
+            });
+
+            // Aiming System
+            if (!isMoving && !isDragging) {
+                const cue = balls[0];
+                const dx = mousePos.x - cue.pos.x; const dy = mousePos.y - cue.pos.y;
+                cueAngle = Math.atan2(dy, dx);
+
+                // Aiming Line
+                ctx.setLineDash([5, 5]); ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+                ctx.beginPath(); ctx.moveTo(cue.pos.x, cue.pos.y);
+                ctx.lineTo(cue.pos.x - Math.cos(cueAngle)*800, cue.pos.y - Math.sin(cueAngle)*800);
+                ctx.stroke(); ctx.setLineDash([]);
+
+                // Ghost Ball
+                ctx.fillStyle = 'rgba(255,255,255,0.05)';
+                ctx.beginPath();
+                ctx.arc(cue.pos.x - Math.cos(cueAngle)*80, cue.pos.y - Math.sin(cueAngle)*80, BALL_RADIUS, 0, Math.PI*2);
+                ctx.fill();
+            }
+
+            // Balls
+            balls.forEach(b => {
+                if (b.isSunk) return;
+
+                // Shadow
+                ctx.fillStyle = 'rgba(0,0,0,0.4)';
+                ctx.beginPath(); ctx.ellipse(b.pos.x+3, b.pos.y+3, BALL_RADIUS, BALL_RADIUS*0.8, 0, 0, Math.PI*2); ctx.fill();
+
+                // Ball Body
+                const grad = ctx.createRadialGradient(b.pos.x-BALL_RADIUS/3, b.pos.y-BALL_RADIUS/3, 1, b.pos.x, b.pos.y, BALL_RADIUS);
+                grad.addColorStop(0, '#fff'); grad.addColorStop(0.2, b.color); grad.addColorStop(1, '#000');
+                ctx.fillStyle = grad;
+                ctx.beginPath(); ctx.arc(b.pos.x, b.pos.y, BALL_RADIUS, 0, Math.PI*2); ctx.fill();
+
+                // Details (Numbers & Stripes)
+                if (b.id !== 0) {
+                    ctx.fillStyle = 'white';
+                    if (b.isStripe) {
+                        ctx.save(); ctx.beginPath(); ctx.arc(b.pos.x, b.pos.y, BALL_RADIUS, 0, Math.PI*2); ctx.clip();
+                        ctx.fillRect(b.pos.x-BALL_RADIUS, b.pos.y-BALL_RADIUS/2.5, BALL_RADIUS*2, BALL_RADIUS/1.25);
+                        ctx.restore();
+                        ctx.beginPath(); ctx.arc(b.pos.x, b.pos.y, BALL_RADIUS/1.8, 0, Math.PI*2); ctx.fill();
+                    } else {
+                        ctx.beginPath(); ctx.arc(b.pos.x, b.pos.y, BALL_RADIUS/1.8, 0, Math.PI*2); ctx.fill();
+                    }
+                    ctx.fillStyle = 'black'; ctx.font = 'bold 9px Inter'; ctx.textAlign = 'center';
+                    ctx.fillText(b.id, b.pos.x, b.pos.y+3.5);
+                }
+
+                // Shine
+                const shine = ctx.createRadialGradient(b.pos.x-BALL_RADIUS/2, b.pos.y-BALL_RADIUS/2, 1, b.pos.x-BALL_RADIUS/2, b.pos.y-BALL_RADIUS/2, BALL_RADIUS/1.5);
+                shine.addColorStop(0, 'rgba(255,255,255,0.4)'); shine.addColorStop(1, 'transparent');
+                ctx.fillStyle = shine; ctx.beginPath(); ctx.arc(b.pos.x, b.pos.y, BALL_RADIUS, 0, Math.PI*2); ctx.fill();
+            });
+
+            // Cue Stick
+            if (!isMoving) {
+                const cueBall = balls[0];
+                const d = 25 + power;
+                const sx = cueBall.pos.x + Math.cos(cueAngle)*d;
+                const sy = cueBall.pos.y + Math.sin(cueAngle)*d;
+                const ex = cueBall.pos.x + Math.cos(cueAngle)*(d + CUE_LENGTH);
+                const ey = cueBall.pos.y + Math.sin(cueAngle)*(d + CUE_LENGTH);
+
+                const cueGrad = ctx.createLinearGradient(sx, sy, ex, ey);
+                cueGrad.addColorStop(0, '#f5deb3'); cueGrad.addColorStop(0.2, '#fff'); cueGrad.addColorStop(0.8, '#4a2c1d'); cueGrad.addColorStop(1, '#000');
+                
+                ctx.shadowBlur = 15; ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.strokeStyle = cueGrad; ctx.lineWidth = 7; ctx.lineCap = 'round';
+                ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
+                ctx.restore();
+            }
+
+            requestAnimationFrame(() => {
+                updatePhysics();
+                draw();
+            });
+        }
+
+        // --- INTERACTION ---
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mousePos = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+            if (isDragging) {
+                const dist = Math.sqrt((mousePos.x-balls[0].pos.x)**2 + (mousePos.y-balls[0].pos.y)**2);
+                power = Math.min(dist / 2.5, 100);
+                powerBar.style.height = power + '%';
+            }
+        });
+
+        canvas.addEventListener('mousedown', () => { if(!isMoving) isDragging = true; });
+        window.addEventListener('mouseup', () => {
+            if (isDragging && power > 5) {
+                const squirt = -spin.x * 0.12; 
+                const finalAngle = cueAngle + squirt;
+                balls[0].vel = { x: -Math.cos(finalAngle) * (power/4), y: -Math.sin(finalAngle) * (power/4) };
+                balls[0].spin = { ...spin };
+                isMoving = true;
+            }
+            isDragging = false;
+            power = 0;
+            powerBar.style.height = '0%';
+        });
+
+        spinSelector.addEventListener('click', (e) => {
+            const rect = spinSelector.getBoundingClientRect();
+            spin.x = (e.clientX - rect.left - 50) / 50;
+            spin.y = (e.clientY - rect.top - 50) / 50;
+            spinMarker.style.left = (50 + spin.x * 50) + '%';
+            spinMarker.style.top = (50 + spin.y * 50) + '%';
+        });
+
+        function toggleSpinPanel() { spinPanel.classList.toggle('active'); }
+        function resetSpin() { 
+            spin = {x:0, y:0}; 
+            spinMarker.style.left = '50%'; 
+            spinMarker.style.top = '50%';
+        }
+
+        function updateHud() {
+            sunkHud.innerHTML = '';
+            balls.filter(b => b.isSunk && b.id !== 0).forEach(b => {
+                const div = document.createElement('div');
+                div.className = 'sunk-ball';
+                div.style.backgroundColor = b.color;
+                sunkHud.appendChild(div);
+            });
+        }
+
+        resetGame();
+        draw();
+    </script>
+</body>
+</html>
