@@ -1,772 +1,244 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>بلياردو النجوم | ملوك الطاولة</title>
-    
-    <!-- External Resources -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Tajawal', 'sans-serif'] },
-                    colors: {
-                        pool: {
-                            felt: '#1a472a',
-                            wood: '#5d4037',
-                            gold: '#ffd700',
-                            dark: '#0a0a0a'
-                        }
-                    },
-                    animation: {
-                        'spin-slow': 'spin 10s linear infinite',
-                        'bounce-slow': 'bounce 3s infinite',
-                    }
-                }
-            }
+    <title>أسطورة البيلياردو - Pro Pool JS</title>
+    <style>
+        body {
+            background-color: #1a1a1a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            color: white;
+            font-family: sans-serif;
         }
-    </script>
-
-    <style type="text/tailwindcss">
-        @layer base {
-            body { @apply bg-pool-dark text-white font-sans overflow-hidden; }
+        canvas {
+            border: 15px solid #5d3a1a;
+            border-radius: 10px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            cursor: crosshair;
         }
-
-        .glass-panel {
-            @apply bg-black/40 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] shadow-2xl;
-        }
-
-        .btn-primary {
-            @apply bg-gradient-to-br from-yellow-400 via-amber-500 to-amber-700 px-8 py-3 rounded-2xl font-black text-xl shadow-xl shadow-amber-500/20 active:scale-95 transition-all text-pool-dark;
-        }
-
-        .store-tab {
-            @apply px-6 py-3 rounded-2xl transition-all cursor-pointer text-white/50 font-bold hover:bg-white/5;
-        }
-        .store-tab-active {
-            @apply bg-yellow-500/10 text-yellow-500 border-2 border-yellow-500/20;
-        }
-
-        #game-canvas {
-            @apply cursor-crosshair rounded-[60px] shadow-[0_0_100px_rgba(0,0,0,0.8)];
-        }
-
-        .modal-overlay {
-            @apply fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-500;
-        }
-        .modal-active { @apply opacity-100 pointer-events-auto; }
-        
-        .pulse-yellow { animation: pulse-gold 2s infinite; }
-        @keyframes pulse-gold {
-            0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
-            70% { box-shadow: 0 0 0 15px rgba(245, 158, 11, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
-        }
+        .ui { margin-top: 15px; text-align: center; }
     </style>
 </head>
-<body class="min-h-screen">
+<body>
 
-    <!-- --- HUD & OVERLAYS --- -->
-    <div id="ui-container" class="fixed inset-0 w-full h-full z-50 flex flex-col pointer-events-none">
+    <h2>بلياردو المحترفين (HTML5 Canvas)</h2>
+    <canvas id="poolTable" width="800" height="400"></canvas>
+    
+    <div class="ui">
+        <p>اسحب الماوس بعيداً عن الكرة البيضاء لتحديد القوة والاتجاه ثم أفلت</p>
+        <button onclick="location.reload()">إعادة اللعبة</button>
+    </div>
+
+<script>
+const canvas = document.getElementById('poolTable');
+const ctx = canvas.getContext('2d');
+
+// إعدادات اللعبة
+const BALL_RADIUS = 12;
+const POCKET_RADIUS = 25;
+const FRICTION = 0.985; // احتكاك الطاولة (تباطؤ)
+const WALL_BOUNCE = 0.7; // قوة الارتداد من الجدران
+
+let balls = [];
+let isDragging = false;
+let mousePos = { x: 0, y: 0 };
+
+class Ball {
+    constructor(x, y, color, isCue = false) {
+        this.x = x;
+        this.y = y;
+        this.vx = 0;
+        this.vy = 0;
+        this.radius = BALL_RADIUS;
+        this.color = color;
+        this.isCue = isCue;
+    }
+
+    draw() {
+        // رسم ظل الكرة
+        ctx.beginPath();
+        ctx.arc(this.x + 3, this.y + 3, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(0,0,0,0.3)";
+        ctx.fill();
+
+        // رسم الكرة
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
         
-        <!-- Top HUD -->
-        <div class="p-8 flex justify-between items-start pointer-events-auto">
-            <div class="flex items-center gap-4">
-                <div class="glass-panel p-2 flex items-center gap-4 pr-6 cursor-pointer hover:bg-white/5 transition-all" onclick="toggleModal('modal-leaderboard')">
-                    <div class="relative">
-                        <img id="user-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=ProPlayer" class="w-14 h-14 rounded-full border-4 border-yellow-500 shadow-lg">
-                        <div class="absolute -bottom-1 -right-1 bg-green-500 w-4 h-4 rounded-full border-2 border-pool-dark"></div>
-                    </div>
-                    <div>
-                        <div id="user-name" class="font-black text-lg tracking-tight capitalize">منصور المحترف</div>
-                        <div class="flex items-center gap-2">
-                            <div class="w-24 h-1.5 bg-white/10 rounded-full overflow-hidden">
-                                <div class="bg-yellow-500 h-full w-[65%] shadow-[0_0_10px_#f59e0b]"></div>
-                            </div>
-                            <span class="text-[10px] text-yellow-500 font-bold uppercase">LVL 15</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="glass-panel px-6 py-3 flex items-center gap-4 group cursor-pointer hover:bg-white/5 transition-all" onclick="toggleModal('modal-vault')">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-400 to-green-600 flex items-center justify-center shadow-lg shadow-emerald-500/40">
-                        <i data-lucide="shield-check" class="w-6 h-6 text-white"></i>
-                    </div>
-                    <div class="flex flex-col">
-                        <span id="coin-balance" class="font-black text-2xl leading-none">24,500</span>
-                        <span class="text-[10px] text-white/40 uppercase font-black tracking-widest">Safe Balance</span>
-                    </div>
-                </div>
-            </div>
+        // لمعة الإضاءة لإعطاء مظهر 3D
+        ctx.beginPath();
+        ctx.arc(this.x - 4, this.y - 4, 3, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(255,255,255,0.4)";
+        ctx.fill();
+        ctx.closePath();
+    }
 
-            <div class="flex gap-4">
-                <button onclick="toggleModal('modal-shop')" class="glass-panel p-4 hover:bg-white/10 transition-all pointer-events-auto flex gap-3 items-center">
-                    <i data-lucide="shopping-bag" class="w-6 h-6 text-yellow-500"></i>
-                    <span class="font-bold hidden md:block">المتجر</span>
-                </button>
-                <button onclick="toggleModal('modal-settings')" class="glass-panel p-4 hover:bg-white/10 transition-all pointer-events-auto">
-                    <i data-lucide="menu"></i>
-                </button>
-            </div>
-        </div>
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vx *= FRICTION;
+        this.vy *= FRICTION;
 
-        <!-- Meta Widgets -->
-        <div class="absolute left-8 top-1/2 -translate-y-1/2 flex flex-col gap-6 pointer-events-auto">
-            <div class="flex flex-col items-center gap-1 group cursor-pointer" onclick="toggleModal('modal-spin')">
-                <div class="w-16 h-16 glass-panel flex items-center justify-center group-hover:scale-110 transition-transform pulse-yellow">
-                    <i data-lucide="disc" class="w-8 h-8 text-yellow-500 animate-spin-slow"></i>
-                </div>
-                <span class="text-[10px] font-black uppercase text-yellow-500">Spin</span>
-            </div>
-            <div class="flex flex-col items-center gap-1 group cursor-pointer" onclick="toggleModal('modal-missions')">
-                <div class="w-16 h-16 glass-panel flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <i data-lucide="target" class="w-8 h-8 text-blue-400"></i>
-                </div>
-                <span class="text-[10px] font-black uppercase text-blue-400">Missions</span>
-            </div>
-        </div>
+        // توقف الكرة تماماً عند السرعات المنخفضة جداً
+        if (Math.abs(this.vx) < 0.1) this.vx = 0;
+        if (Math.abs(this.vy) < 0.1) this.vy = 0;
 
-        <!-- Main Lobby UI -->
-        <div id="lobby-ui" class="flex-1 flex flex-col items-center justify-center gap-12 pointer-events-auto">
-            <div class="text-center space-y-2">
-                <div class="inline-block px-4 py-1 bg-yellow-500/10 text-yellow-500 rounded-full text-xs font-black tracking-[0.3em] mb-4 border border-yellow-500/20">ELITE MASTERS LEAGUE</div>
-                <h1 class="text-9xl font-black italic tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-white/10 drop-shadow-2xl">8POOL PRO</h1>
-                <p class="text-white/40 font-medium text-lg">تحدي الملوك في أقوى لعبة بلياردو واقعية</p>
-            </div>
+        // الارتداد من الجدران
+        if (this.x + this.radius > canvas.width) { this.x = canvas.width - this.radius; this.vx *= -WALL_BOUNCE; }
+        if (this.x - this.radius < 0) { this.x = this.radius; this.vx *= -WALL_BOUNCE; }
+        if (this.y + this.radius > canvas.height) { this.y = canvas.height - this.radius; this.vy *= -WALL_BOUNCE; }
+        if (this.y - this.radius < 0) { this.y = this.radius; this.vy *= -WALL_BOUNCE; }
+    }
+}
 
-            <div class="flex flex-col md:flex-row gap-6">
-                <button onclick="startGame('local')" class="btn-primary flex items-center gap-4 px-12 py-5 group">
-                    <i data-lucide="swords" class="group-hover:rotate-12 transition-transform"></i>
-                    <span>لعب محلي</span>
-                </button>
-                <button onclick="startGame('online')" class="btn-primary bg-gradient-to-br from-blue-500 to-indigo-700 shadow-blue-500/20 text-white flex items-center gap-4 px-12 py-5 group">
-                    <i data-lucide="globe-2" class="animate-pulse"></i>
-                    <span>بطولة أونلاين</span>
-                </button>
-            </div>
-            
-            <div onclick="claimDailyReward()" class="cursor-pointer glass-panel py-4 px-10 flex items-center gap-6 animate-bounce hover:scale-105 transition-all border-yellow-500/20">
-                <div class="w-12 h-12 bg-yellow-400 rounded-2xl flex items-center justify-center shadow-lg shadow-yellow-500/20">
-                    <i data-lucide="gift" class="text-pool-dark"></i>
-                </div>
-                <div class="text-right">
-                    <div class="font-black text-xl">المكافأة اليومية</div>
-                    <div class="text-yellow-500 text-sm font-bold leading-none">+1,000 COINS</div>
-                </div>
-            </div>
-        </div>
+// إنشاء الكرات وترتيبها (مثلث)
+function initGame() {
+    balls = [];
+    // الكرة البيضاء
+    const cueBall = new Ball(200, canvas.height / 2, "#ffffff", true);
+    balls.push(cueBall);
 
-        <!-- NEW MODALS -->
-        <div id="modal-shop" class="modal-overlay">
-            <div class="glass-panel w-[95%] max-w-5xl h-[85vh] overflow-hidden flex flex-col p-8 md:p-12 pointer-events-auto">
-                <div class="flex justify-between items-center mb-8">
-                    <div class="flex items-center gap-6">
-                        <h2 class="text-5xl font-black italic tracking-tighter">المتجر الملكي</h2>
-                        <div class="px-4 py-1 bg-yellow-500/10 text-yellow-500 rounded-full text-[10px] font-black tracking-widest border border-yellow-500/20">PREMIUM ITEMS</div>
-                    </div>
-                    <button onclick="toggleModal('modal-shop')" class="w-12 h-12 glass-panel flex items-center justify-center hover:bg-white/10 transition-all cursor-pointer">
-                        <i data-lucide="x"></i>
-                    </button>
-                </div>
-                <div class="flex gap-4 mb-10 overflow-x-auto pb-4">
-                    <div class="store-tab store-tab-active" onclick="switchStoreTab('cues')">العصي الأسطورية</div>
-                    <div class="store-tab" onclick="switchStoreTab('avatars')">افتارات النخبة</div>
-                </div>
-                <div id="store-grid" class="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 overflow-y-auto pr-4"></div>
-            </div>
-        </div>
-
-        <div id="modal-leaderboard" class="modal-overlay">
-            <div class="glass-panel w-full max-w-2xl p-10 pointer-events-auto relative">
-                <button onclick="toggleModal('modal-leaderboard')" class="absolute top-6 right-6 p-2 hover:bg-white/5 rounded-full"><i data-lucide="x"></i></button>
-                <div class="flex items-center gap-4 mb-8">
-                    <i data-lucide="trophy" class="w-10 h-10 text-yellow-500"></i>
-                    <h2 class="text-4xl font-black italic">لوحة الصدارة</h2>
-                </div>
-                <div class="space-y-4" id="leaderboard-list"></div>
-            </div>
-        </div>
-
-        <div id="modal-vault" class="modal-overlay">
-            <div class="glass-panel w-full max-w-md p-12 text-center pointer-events-auto relative">
-                <button onclick="toggleModal('modal-vault')" class="absolute top-6 right-6 p-2 hover:bg-white/5 rounded-full"><i data-lucide="x"></i></button>
-                <div class="w-24 h-24 bg-gradient-to-br from-emerald-400 to-green-700 rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-green-500/20 rotate-12">
-                    <i data-lucide="shield-check" class="w-12 h-12 text-white -rotate-12"></i>
-                </div>
-                <h2 class="text-3xl font-black mb-2">خزنة الثروة</h2>
-                <div class="bg-black/20 rounded-3xl p-6 mb-8 border border-white/5 text-right">
-                    <div id="vault-amount" class="text-5xl font-black text-emerald-400">0</div>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <button onclick="depositToVault()" class="btn-primary bg-emerald-500 text-white py-4">إيداع</button>
-                    <button onclick="withdrawFromVault()" class="glass-panel py-4 font-bold border-white/10">سحب</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="modal-spin" class="modal-overlay">
-            <div class="glass-panel p-16 text-center space-y-10 max-w-lg relative overflow-hidden pointer-events-auto">
-                <h2 class="text-4xl font-black italic">عجلة الحظ الملكية</h2>
-                <div class="relative w-72 h-72 mx-auto" id="wheel-container">
-                    <div id="wheel" class="absolute inset-0 rounded-full border-8 border-yellow-500 shadow-2xl transition-transform duration-[5s] cubic-bezier(0.15, 0, 0.15, 1)">
-                        <div class="absolute inset-0 rounded-full bg-[conic-gradient(from_0deg,#22c55e_0_45deg,#3b82f6_45_90deg,#ef4444_90_135deg,#f59e0b_135_180deg,#8b5cf6_180_225deg,#ec4899_225_270deg,#14b8a6_270_315deg,#6366f1_315_360deg)] opacity-90 blur-[1px]"></div>
-                        <div class="absolute inset-0 flex items-center justify-center font-black text-white text-3xl italic pointer-events-none">LUCKY</div>
-                    </div>
-                </div>
-                <button id="spin-btn" onclick="spinWheel()" class="btn-primary w-full py-6 text-2xl shadow-yellow-500/40">إطلاق الدوران</button>
-            </div>
-        </div>
-
-        <div id="modal-missions" class="modal-overlay">
-            <div class="glass-panel w-full max-w-xl p-12 pointer-events-auto relative">
-                <button onclick="toggleModal('modal-missions')" class="absolute top-6 right-6 p-2 hover:bg-white/5 rounded-full"><i data-lucide="x"></i></button>
-                <h2 class="text-4xl font-black italic mb-10">المهمات اليومية</h2>
-                <div class="space-y-6" id="missions-list">
-                    <div class="p-6 bg-white/5 rounded-[2rem] flex justify-between items-center border border-white/5">
-                        <div class="text-right">
-                            <div class="font-black text-xl">صائد الكرات</div>
-                            <div class="text-[10px] text-white/40 uppercase font-black tracking-widest mt-1">+1,000 COINS</div>
-                        </div>
-                        <div class="w-32 bg-white/10 h-1.5 rounded-full"><div class="bg-blue-500 h-full w-[45%]"></div></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- --- CANVAS --- -->
-    <div id="game-container" class="fixed inset-0 w-full h-full flex items-center justify-center bg-[#070b14] overflow-hidden">
-        <!-- Ambiance Lights -->
-        <div class="absolute w-[800px] h-[800px] bg-blue-500/10 rounded-full blur-[150px] -top-96 -left-96"></div>
-        <div class="absolute w-[800px] h-[800px] bg-yellow-500/5 rounded-full blur-[150px] -bottom-96 -right-96"></div>
-        <canvas id="game-canvas"></canvas>
-    </div>
-
-    <!-- --- SCRIPTS --- -->
-    <script>
-        const BALL_RADIUS = 15;
-        const TABLE_WIDTH = 1000;
-        const TABLE_HEIGHT = 500;
-        const HOLE_RADIUS = 35;
-        const CUSHION_SIZE = 22;
-        const FRICTION = 0.988;
-        const SUBSTEPS = 10; // Optimized for performance while keeping precision
-
-        let canvas, ctx;
-        let balls = [];
-        let cueBall;
-        let cue = { x: 0, y: 0, angle: 0, power: 0, charging: false };
-        let gameState = 'LOBBY';
-        let inventory = { coins: 24500, ownedCues: ['cue-0'], currentCue: 'cue-0' };
-        let anyMoving = true;
-
-        // --- CORE PHYSICS ---
-        class Vector {
-            constructor(x, y) { this.x = x; this.y = y; }
-            add(v) { return new Vector(this.x + v.x, this.y + v.y); }
-            sub(v) { return new Vector(this.x - v.x, this.y - v.y); }
-            mult(n) { return new Vector(this.x * n, this.y * n); }
-            mag() { return Math.sqrt(this.x**2 + this.y**2); }
-            unit() { let m = this.mag(); return m === 0 ? new Vector(0,0) : new Vector(this.x/m, this.y/m); }
-            dot(v) { return this.x * v.x + this.y * v.y; }
+    // ترتيب كرات ملونة في مثلث
+    const startX = 550;
+    const startY = canvas.height / 2;
+    let step = BALL_RADIUS * 2.2;
+    
+    for (let i = 0; i < 5; i++) {
+        for (let j = 0; j <= i; j++) {
+            let color = `hsl(${(i * 15 + j * 40) % 360}, 70%, 50%)`;
+            if (i === 2 && j === 1) color = "#111"; // الكرة السوداء رقم 8
+            balls.push(new Ball(startX + i * step, startY + (j * step) - (i * step / 2), color));
         }
+    }
+}
 
-        class Ball {
-            constructor(x, y, num, color, isStripe = false) {
-                this.pos = new Vector(x, y);
-                this.vel = new Vector(0, 0);
-                this.num = num;
-                this.color = color;
-                this.isStripe = isStripe;
-                this.inPocket = false;
-            }
+// معالجة التصادم بين كرتين بفيزياء حقيقية
+function resolveCollision(b1, b2) {
+    let dx = b2.x - b1.x;
+    let dy = b2.y - b1.y;
+    let distance = Math.sqrt(dx * dx + dy * dy);
 
-            update(dt) {
-                if(this.inPocket) return;
+    if (distance < b1.radius + b2.radius) {
+        // منع التصاق الكرات
+        let overlap = (b1.radius + b2.radius - distance) / 2;
+        let nx = dx / distance; // المتجه الناظم x
+        let ny = dy / distance; // المتجه الناظم y
+        b1.x -= nx * overlap;
+        b1.y -= ny * overlap;
+        b2.x += nx * overlap;
+        b2.y += ny * overlap;
 
-                this.pos = this.pos.add(this.vel.mult(dt));
-                this.vel = this.vel.mult(Math.pow(FRICTION, dt * 100)); // Calibrated friction
-                if(this.vel.mag() < 0.2) this.vel = new Vector(0,0);
+        // تبادل الزخم (Momentum)
+        let vRelative = (b1.vx - b2.vx) * nx + (b1.vy - b2.vy) * ny;
+        if (vRelative > 0) {
+            let impulse = (1.8 * vRelative) / 2; // 1.8 تعبر عن مرونة التصادم
+            b1.vx -= impulse * nx;
+            b1.vy -= impulse * ny;
+            b2.vx += impulse * nx;
+            b2.vy += impulse * ny;
+        }
+    }
+}
 
-                // Boundary/Cushion Physics
-                const bounce = 0.82;
-                if(this.pos.x - BALL_RADIUS < CUSHION_SIZE) {
-                    this.vel.x *= -bounce;
-                    this.pos.x = CUSHION_SIZE + BALL_RADIUS;
-                } else if(this.pos.x + BALL_RADIUS > TABLE_WIDTH - CUSHION_SIZE) {
-                    this.vel.x *= -bounce;
-                    this.pos.x = TABLE_WIDTH - CUSHION_SIZE - BALL_RADIUS;
+// نظام الفتحات
+function checkPockets() {
+    const pockets = [
+        {x: 0, y: 0}, {x: 400, y: 0}, {x: 800, y: 0},
+        {x: 0, y: 400}, {x: 400, y: 400}, {x: 800, y: 400}
+    ];
+
+    balls = balls.filter(ball => {
+        for (let p of pockets) {
+            let d = Math.hypot(ball.x - p.x, ball.y - p.y);
+            if (d < POCKET_RADIUS) {
+                if (ball.isCue) {
+                    // إعادة الكرة البيضاء إذا سقطت
+                    ball.x = 200; ball.y = 200;
+                    ball.vx = 0; ball.vy = 0;
+                    return true;
                 }
-                
-                if(this.pos.y - BALL_RADIUS < CUSHION_SIZE) {
-                    this.vel.y *= -bounce;
-                    this.pos.y = CUSHION_SIZE + BALL_RADIUS;
-                } else if(this.pos.y + BALL_RADIUS > TABLE_HEIGHT - CUSHION_SIZE) {
-                    this.vel.y *= -bounce;
-                    this.pos.y = TABLE_HEIGHT - CUSHION_SIZE - BALL_RADIUS;
-                }
-
-                // Precision Pocketing
-                const pockets = [[CUSHION_SIZE, CUSHION_SIZE], [TABLE_WIDTH/2, 18], [TABLE_WIDTH-CUSHION_SIZE, CUSHION_SIZE], 
-                                 [CUSHION_SIZE, TABLE_HEIGHT-CUSHION_SIZE], [TABLE_WIDTH/2, TABLE_HEIGHT-18], [TABLE_WIDTH-CUSHION_SIZE, TABLE_HEIGHT-CUSHION_SIZE]];
-                pockets.forEach(p => {
-                    let d = new Vector(this.pos.x - p[0], this.pos.y - p[1]).mag();
-                    if(d < HOLE_RADIUS * 0.8) {
-                        this.inPocket = true;
-                        this.vel = new Vector(0,0);
-                        if(this.num === 0) setTimeout(() => resetCueBall(), 500); 
-                        else checkWinCondition();
-                    }
-                });
-            }
-
-            draw() {
-                if(this.inPocket) return;
-
-                // 1. Deep Shadow
-                ctx.save();
-                ctx.beginPath();
-                ctx.ellipse(this.pos.x + 4, this.pos.y + 6, BALL_RADIUS, BALL_RADIUS/1.5, 0, 0, Math.PI*2);
-                ctx.fillStyle = 'rgba(0,0,0,0.4)';
-                ctx.fill();
-                ctx.restore();
-
-                // 2. Ball Texture (8 Ball Pool Precision)
-                ctx.beginPath();
-                ctx.arc(this.pos.x, this.pos.y, BALL_RADIUS, 0, Math.PI*2);
-                
-                // Base Gradient
-                let bGrad = ctx.createRadialGradient(this.pos.x - BALL_RADIUS/3, this.pos.y - BALL_RADIUS/3, 2, this.pos.x, this.pos.y, BALL_RADIUS);
-                bGrad.addColorStop(0, '#fff');
-                bGrad.addColorStop(0.2, this.color);
-                bGrad.addColorStop(1, '#000');
-                ctx.fillStyle = bGrad;
-                ctx.fill();
-
-                if(this.isStripe) {
-                    ctx.save();
-                    ctx.beginPath();
-                    ctx.arc(this.pos.x, this.pos.y, BALL_RADIUS, 0, Math.PI*2);
-                    ctx.clip();
-                    ctx.fillStyle = 'white';
-                    ctx.fillRect(this.pos.x - BALL_RADIUS, this.pos.y - BALL_RADIUS/1.6, BALL_RADIUS*2, BALL_RADIUS*1.25);
-                    
-                    // Stripe color core
-                    ctx.fillStyle = this.color;
-                    ctx.fillRect(this.pos.x - BALL_RADIUS, this.pos.y - BALL_RADIUS/3, BALL_RADIUS*2, BALL_RADIUS/1.5);
-                    ctx.restore();
-                }
-
-                // Number Circle & Digit
-                if(this.num > 0) {
-                    ctx.beginPath();
-                    ctx.arc(this.pos.x, this.pos.y, BALL_RADIUS/2, 0, Math.PI*2);
-                    ctx.fillStyle = 'white';
-                    ctx.fill();
-                    ctx.fillStyle = '#111';
-                    ctx.font = 'bold 12px Tajawal';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(this.num, this.pos.x, this.pos.y);
-                }
-
-                // 3. Highlight Overlay
-                ctx.beginPath();
-                ctx.ellipse(this.pos.x - 6, this.pos.y - 7, 5, 3, Math.PI/4, 0, Math.PI*2);
-                let shine = ctx.createLinearGradient(this.pos.x-10, this.pos.y-10, this.pos.x, this.pos.y);
-                shine.addColorStop(0, 'rgba(255,255,255,0.7)');
-                shine.addColorStop(1, 'rgba(255,255,255,0)');
-                ctx.fillStyle = shine;
-                ctx.fill();
+                return false; // حذف الكرة
             }
         }
+        return true;
+    });
+}
 
-        // --- CORE LOGIC ---
-        function setupBalls() {
-            balls = [];
-            cueBall = new Ball(250, 250, 0, '#fff');
-            balls.push(cueBall);
+// التحكم بالماوس
+canvas.addEventListener('mousedown', (e) => {
+    const cueBall = balls.find(b => b.isCue);
+    if (cueBall.vx === 0 && cueBall.vy === 0) {
+        isDragging = true;
+    }
+});
 
-            const colors = ["#facc15", "#2563eb", "#dc2626", "#7c3aed", "#f97316", "#15803d", "#991b1b", "#000"];
-            const rackX = 720;
-            const rackY = 250;
-            let counter = 0;
-            // Precise triangular racking
-            const gap = 0.5;
-            for(let r=0; r<5; r++) {
-                for(let i=0; i<=r; i++) {
-                    counter++;
-                    let color = colors[counter % colors.length];
-                    if(counter === 8) color = "#000";
-                    balls.push(new Ball(
-                        rackX + r * (BALL_RADIUS * 2 * 0.87 + gap), 
-                        rackY - (r * BALL_RADIUS) + (i * (BALL_RADIUS * 2 + gap)), 
-                        counter, color, counter > 8
-                    ));
-                }
-            }
+canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    mousePos = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+});
+
+window.addEventListener('mouseup', () => {
+    if (isDragging) {
+        const cueBall = balls.find(b => b.isCue);
+        let dx = cueBall.x - mousePos.x;
+        let dy = cueBall.y - mousePos.y;
+        cueBall.vx = dx * 0.15; // قوة الضربة
+        cueBall.vy = dy * 0.15;
+        isDragging = false;
+    }
+});
+
+function gameLoop() {
+    // رسم الطاولة
+    ctx.fillStyle = "#2e7d32"; // لون القماش
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // رسم الفتحات
+    ctx.fillStyle = "#000";
+    [ {x: 0, y: 0}, {x: 400, y: 0}, {x: 800, y: 0},
+      {x: 0, y: 400}, {x: 400, y: 400}, {x: 800, y: 400} ].forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, POCKET_RADIUS, 0, Math.PI * 2);
+        ctx.fill();
+    });
+
+    // تحديث الكرات
+    for (let i = 0; i < balls.length; i++) {
+        for (let j = i + 1; j < balls.length; j++) {
+            resolveCollision(balls[i], balls[j]);
         }
+        balls[i].update();
+        balls[i].draw();
+    }
 
-        function resetCueBall() {
-            cueBall.inPocket = false;
-            cueBall.pos = new Vector(250, 250);
-            cueBall.vel = new Vector(0, 0);
-        }
+    checkPockets();
 
-        function resolveCollisions() {
-            for(let i=0; i<balls.length; i++) {
-                for(let j=i+1; j<balls.length; j++) {
-                    let b1 = balls[i]; let b2 = balls[j];
-                    if(b1.inPocket || b2.inPocket) continue;
+    // رسم خط المضرب عند التسديد
+    if (isDragging) {
+        const cueBall = balls.find(b => b.isCue);
+        ctx.beginPath();
+        ctx.moveTo(cueBall.x, cueBall.y);
+        ctx.lineTo(mousePos.x, mousePos.y);
+        ctx.strokeStyle = "rgba(255, 215, 0, 0.5)";
+        ctx.lineWidth = 3;
+        ctx.stroke();
+    }
 
-                    let dNorm = b1.pos.sub(b2.pos);
-                    let dist = dNorm.mag();
-                    if(dist < BALL_RADIUS * 2) {
-                        let unit = dNorm.unit();
-                        let overlap = (BALL_RADIUS * 2) - dist;
-                        b1.pos = b1.pos.add(unit.mult(overlap/2));
-                        b2.pos = b2.pos.sub(unit.mult(overlap/2));
+    requestAnimationFrame(gameLoop);
+}
 
-                        let relVel = b1.vel.sub(b2.vel);
-                        let vDotN = relVel.dot(unit);
-                        if(vDotN < 0) {
-                            let impulseMagnitude = Math.abs(vDotN);
-                            let impulse = unit.mult(vDotN);
-                            b1.vel = b1.vel.sub(impulse);
-                            b2.vel = b2.vel.add(impulse);
-
-                            if(impulseMagnitude > 15) {
-                                gsap.to('#game-canvas', { 
-                                    x: (Math.random()-0.5)*12, 
-                                    y: (Math.random()-0.5)*12, 
-                                    duration: 0.05, 
-                                    repeat: 1, 
-                                    yoyo: true, 
-                                    onComplete: () => gsap.set('#game-canvas', {x:0, y:0}) 
-                                });
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        function drawAiming() {
-            let aimDir = new Vector(Math.cos(cue.angle), Math.sin(cue.angle));
-            
-            // Prediction Line (Hitting direction)
-            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-            ctx.lineWidth = 2;
-            ctx.setLineDash([10, 10]);
-            ctx.beginPath();
-            ctx.moveTo(cueBall.pos.x, cueBall.pos.y);
-            let aimPoint = cueBall.pos.add(aimDir.mult(600)); 
-            ctx.lineTo(aimPoint.x, aimPoint.y);
-            ctx.stroke();
-            ctx.setLineDash([]);
-            
-            // The Stick (Opposite to hit direction)
-            ctx.save();
-            ctx.translate(cueBall.pos.x, cueBall.pos.y);
-            ctx.rotate(cue.angle + Math.PI); // Stick is on the opposite side of aim
-            
-            let powerOffset = cue.power * 0.8;
-            
-            // Stick Shadow
-            ctx.fillStyle = 'rgba(0,0,0,0.5)';
-            ctx.fillRect(CUSHION_SIZE + powerOffset + 10, 10, 400, 10);
-
-            // Stick Body
-            let cueGrad = ctx.createLinearGradient(CUSHION_SIZE + powerOffset, 0, 450 + powerOffset, 0);
-            cueGrad.addColorStop(0, '#fff');
-            cueGrad.addColorStop(0.05, '#facc15');
-            cueGrad.addColorStop(0.1, '#3e2723');
-            cueGrad.addColorStop(1, '#111');
-            
-            ctx.fillStyle = cueGrad;
-            ctx.beginPath();
-            ctx.roundRect(CUSHION_SIZE + powerOffset, -6, 400, 12, [2, 10, 10, 2]);
-            ctx.fill();
-            
-            // Gold Inlays
-            ctx.strokeStyle = 'rgba(255,215,0,0.4)';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            
-            ctx.restore();
-        }
-
-        function loop() {
-            // Background rendering
-            let tGrad = ctx.createRadialGradient(TABLE_WIDTH/2, TABLE_HEIGHT/2, 20, TABLE_WIDTH/2, TABLE_HEIGHT/2, 800);
-            tGrad.addColorStop(0, '#1d4d31');
-            tGrad.addColorStop(1, '#05120a');
-            ctx.fillStyle = tGrad;
-            ctx.fillRect(0,0, TABLE_WIDTH, TABLE_HEIGHT);
-            
-            // Drawing rails/cushions
-            ctx.fillStyle = 'rgba(0,0,0,0.4)';
-            ctx.fillRect(0, 0, TABLE_WIDTH, 22);
-            ctx.fillRect(0, TABLE_HEIGHT-22, TABLE_WIDTH, 22);
-            ctx.fillRect(0, 0, 22, TABLE_HEIGHT);
-            ctx.fillRect(TABLE_WIDTH-22, 0, 22, TABLE_HEIGHT);
-            
-            ctx.strokeStyle = 'rgba(212, 175, 55, 0.15)';
-            ctx.lineWidth = 4;
-            ctx.strokeRect(22, 22, TABLE_WIDTH-44, TABLE_HEIGHT-44);
-
-            // Optimization: Only run physics if balls are moving
-            anyMoving = balls.some(b => !b.inPocket && b.vel.mag() > 0.1);
-
-            if(anyMoving) {
-                for(let s=0; s<SUBSTEPS; s++) {
-                    let dt = (1/60) / SUBSTEPS;
-                    balls.forEach(b => b.update(dt));
-                    resolveCollisions();
-                }
-            }
-
-            balls.forEach(b => b.draw());
-            
-            if(gameState === 'PLAYING' && !anyMoving) {
-                drawAiming();
-            }
-            requestAnimationFrame(loop);
-        }
-
-        // --- STORE DATA ---
-        const STORE_DATA = {
-            cues: [
-                { id: 'cue-0', name: 'الخشب الكلاسيكي', price: 0, power: 5, aim: 4, spin: 3, colors: ['#5d4037', '#3e2723'] },
-                { id: 'cue-1', name: 'عصا التنين الأحمر', price: 5000, power: 8, aim: 6, spin: 5, colors: ['#991b1b', '#111'] },
-                { id: 'cue-2', name: 'الإمبراطور الذهبي', price: 25000, power: 10, aim: 9, spin: 8, colors: ['#fbbf24', '#f59e0b'] },
-                { id: 'cue-3', name: 'شبح النيون', price: 50000, power: 9, aim: 10, spin: 10, colors: ['#06b6d4', '#22d3ee'] }
-            ],
-            avatars: [
-                { id: 'av-0', name: 'اللاعب الموهوب', seed: 'ProPlayer', price: 0 },
-                { id: 'av-1', name: 'خبير الطاولة', seed: 'arab', price: 2000 },
-                { id: 'av-2', name: 'زعيم العرب', seed: 'Ahmed', price: 10000 },
-                { id: 'av-3', name: 'أسطورة الخليج', seed: 'king', price: 50000 }
-            ]
-        };
-
-        let userState = {
-            coins: 24500,
-            vault: 0,
-            inventory: { cues: ['cue-0'], avatars: ['av-0'] },
-            active: { cue: 'cue-0', avatar: 'av-0' }
-        };
-
-        function switchStoreTab(tab) {
-            const grid = document.getElementById('store-grid');
-            document.querySelectorAll('.store-tab').forEach(el => el.classList.remove('store-tab-active'));
-            event.target.classList.add('store-tab-active');
-
-            grid.innerHTML = STORE_DATA[tab].map(item => {
-                const isOwned = userState.inventory[tab].includes(item.id);
-                return `
-                <div class="glass-panel p-8 group hover:scale-[1.02] transition-all border-white/5 hover:border-yellow-500/30">
-                    <div class="h-40 rounded-[2rem] bg-white/5 flex items-center justify-center p-6 mb-6">
-                        ${tab === 'cues' ? `
-                            <div class="w-full h-3 rounded-full shadow-lg" style="background: linear-gradient(to right, ${item.colors[0]}, ${item.colors[1]})"></div>
-                        ` : `
-                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${item.seed}" class="w-24 h-24 rounded-full border-4 border-white/10 shadow-xl">
-                        `}
-                    </div>
-                    <div class="text-right w-full">
-                        <h3 class="font-black text-2xl mb-2 italic tracking-tighter">${item.name}</h3>
-                        ${tab === 'cues' ? `
-                            <div class="flex flex-col gap-2 mt-2 mb-6">
-                                ${statBar('Power', item.power)}
-                                ${statBar('Precision', item.aim)}
-                            </div>
-                        ` : ''}
-                        <button onclick="buyItem('${tab}', '${item.id}', ${item.price})" class="btn-primary w-full shadow-none text-sm py-4 ${isOwned ? 'opacity-50 cursor-not-allowed bg-white/10 text-white border border-white/10' : ''}">
-                            ${isOwned ? 'Owned Item' : `Unlock for ${item.price.toLocaleString()} 💰`}
-                        </button>
-                    </div>
-                </div>`;
-            }).join('');
-            lucide.createIcons();
-        }
-
-        function statBar(label, value) {
-            return `<div class="flex justify-between items-center text-[10px] uppercase font-black text-white/30">
-                <span>${label}</span>
-                <div class="w-32 h-1 bg-white/5 rounded-full overflow-hidden">
-                    <div class="bg-yellow-500 h-full shadow-[0_0_5px_#f59e0b]" style="width: ${value*10}%"></div>
-                </div>
-            </div>`;
-        }
-
-        // --- ECONOMY & HUD ---
-        function updateHUD() {
-            document.getElementById('coin-balance').innerText = userState.coins.toLocaleString();
-            document.getElementById('vault-amount').innerText = userState.vault.toLocaleString();
-            document.getElementById('user-avatar').src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${STORE_DATA.avatars.find(a => a.id === userState.active.avatar).seed}`;
-            localStorage.setItem('8pool_pro_state', JSON.stringify(userState));
-        }
-
-        function buyItem(category, id, price) {
-            if(userState.inventory[category].includes(id)) {
-                userState.active[category] = id;
-                updateHUD();
-                return;
-            }
-            if(userState.coins >= price) {
-                userState.coins -= price;
-                userState.inventory[category].push(id);
-                userState.active[category] = id;
-                updateHUD();
-                switchStoreTab(category);
-                alert("مبروك! تم شراء العناصر بنجاح.");
-            } else {
-                alert("عفواً، لا تملك رصيد كافي.");
-            }
-        }
-
-        function depositToVault() {
-            let amt = prompt("أدخل المبلغ المراد إيداعه:");
-            if(amt && !isNaN(amt) && userState.coins >= parseInt(amt)) {
-                userState.coins -= parseInt(amt);
-                userState.vault += parseInt(amt);
-                updateHUD();
-            }
-        }
-
-        function withdrawFromVault() {
-            let amt = prompt("أدخل المبلغ المراد سحبه:");
-            if(amt && !isNaN(amt) && userState.vault >= parseInt(amt)) {
-                userState.vault -= parseInt(amt);
-                userState.coins += parseInt(amt);
-                updateHUD();
-            }
-        }
-
-        function spinWheel() {
-            const wheel = document.getElementById('wheel');
-            const btn = document.getElementById('spin-btn');
-            const rand = 3600 + Math.random() * 1800; // 10 to 15 turns
-            btn.disabled = true;
-            wheel.style.transform = `rotate(${rand}deg)`;
-
-            setTimeout(() => {
-                const prizes = [500, 1000, 5000, 200, 10000, 50, 1000, 2500];
-                const prize = prizes[Math.floor(Math.random() * prizes.length)];
-                alert(`يا لك من محظوظ! فزت بـ ${prize} عملة.`);
-                userState.coins += prize;
-                updateHUD();
-                btn.disabled = false;
-            }, 6000);
-        }
-
-        function claimDailyReward() {
-            userState.coins += 1000;
-            updateHUD();
-            event.target.style.display = 'none';
-        }
-
-        function generateLeaderboard() {
-            const list = document.getElementById('leaderboard-list');
-            const players = [
-                { name: "خالد الصياد", score: 2500000, seed: "boss" },
-                { name: "ليلى المحترفة", score: 1800000, seed: "sara" },
-                { name: "فهد الجزائري", score: 950000, seed: "king" },
-                { name: "أنت (منصور)", score: userState.coins + userState.vault, seed: "ProPlayer", isUser: true }
-            ].sort((a,b) => b.score - a.score);
-
-            list.innerHTML = players.map((p, i) => `
-                <div class="glass-panel p-5 flex items-center justify-between border-white/5 ${p.isUser ? 'border-yellow-500/50 bg-yellow-500/5' : ''}">
-                    <div class="flex items-center gap-5">
-                        <div class="w-8 font-black text-2xl text-white/10">${i+1}</div>
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${p.seed}" class="w-14 h-14 rounded-full border-2 border-white/10">
-                        <div class="font-black text-xl italic tracking-tighter">${p.name}</div>
-                    </div>
-                    <div class="text-yellow-500 font-black text-2xl drop-shadow-lg">${p.score.toLocaleString()} 💰</div>
-                </div>
-            `).join('');
-        }
-
-        // --- GAME SYSTEM ---
-        function init() {
-            canvas = document.getElementById('game-canvas');
-            ctx = canvas.getContext('2d');
-            canvas.width = TABLE_WIDTH;
-            canvas.height = TABLE_HEIGHT;
-            
-            const saved = localStorage.getItem('8pool_pro_state');
-            if(saved) userState = JSON.parse(saved);
-            
-            setupBalls();
-            setupControls();
-            updateHUD();
-            generateLeaderboard();
-            switchStoreTab('cues');
-            loop();
-            lucide.createIcons();
-        }
-
-        function setupControls() {
-            canvas.onmousemove = (e) => {
-                let rect = canvas.getBoundingClientRect();
-                let mx = e.clientX - rect.left;
-                let my = e.clientY - rect.top;
-                // Aim logic: Hit towards cursor
-                cue.angle = Math.atan2(my - cueBall.pos.y, mx - cueBall.pos.x);
-            };
-            canvas.onmousedown = () => {
-                if(gameState === 'PLAYING' && balls.every(b => b.vel.mag() < 0.1)) {
-                    cue.charging = true;
-                }
-            };
-            canvas.onmouseup = () => {
-                if(cue.charging) {
-                    let force = (cue.power / 100) * 45; 
-                    cueBall.vel = new Vector(Math.cos(cue.angle) * force, Math.sin(cue.angle) * force);
-                    cue.power = 0;
-                    cue.charging = false;
-                }
-            };
-            setInterval(() => {
-                if(cue.charging) cue.power = (cue.power + 2.2) % 100;
-            }, 16);
-        }
-
-        function toggleModal(id) { 
-            const el = document.getElementById(id);
-            el.classList.toggle('modal-active'); 
-            if(id === 'modal-leaderboard') generateLeaderboard();
-        }
-
-        function startGame(mode) { 
-            // Reset board for new game
-            setupBalls();
-            anyMoving = true;
-            
-            gsap.to('#lobby-ui', { opacity: 0, scale: 0.9, duration: 0.4, onComplete: () => {
-                document.getElementById('lobby-ui').classList.add('hidden');
-                gameState = 'PLAYING';
-                
-                // Show notification
-                if(mode === 'local') {
-                    console.log("Local game started");
-                }
-            }});
-        }
-
-        function checkWinCondition() {
-            if(balls.find(b => b.num === 8 && b.inPocket)) {
-                alert("انتهت المباراة! تم إدخال الكرة رقم 8.");
-                location.reload();
-            }
-        }
-
-        window.onload = init;
+initGame();
+gameLoop();
+</script>
+</body>
+</html>
     </script>
 </body>
 </html>
