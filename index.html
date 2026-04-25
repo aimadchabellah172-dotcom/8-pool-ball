@@ -260,4 +260,19 @@ function update() {
     
     // رسم الحفر
     ctx.fillStyle = "#000";
-    [ [0,0], [480,0], [960,0], [0,
+    [ [0,0], [480,0], [960,0], [0,480], [480,480], [960,480] ].forEach(p => {
+        ctx.beginPath(); ctx.arc(p[0], p[1], POCKET_R, 0, Math.PI*2); ctx.fill();
+    });
+
+    balls.forEach(b => { b.update(); b.draw(); });
+    resolveCollisions();
+    drawAimHelper();
+    drawCue();
+    requestAnimationFrame(update);
+}
+
+initGame();
+update();
+</script>
+</body>
+</html>
