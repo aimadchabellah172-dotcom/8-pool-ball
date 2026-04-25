@@ -2,162 +2,133 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Assistant</title>
+<title>AI محلي ذكي</title>
 
 <style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: 'Segoe UI', sans-serif;
-    }
-
-    body {
-        height: 100vh;
-        background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .container {
-        width: 90%;
-        max-width: 900px;
-        height: 90vh;
-        backdrop-filter: blur(15px);
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 20px;
-        box-shadow: 0 0 40px rgba(0,0,0,0.5);
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-    }
-
-    header {
-        padding: 20px;
-        text-align: center;
-        font-size: 22px;
-        color: #fff;
-        background: rgba(255,255,255,0.05);
-        border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
-
-    .chat-box {
-        flex: 1;
-        padding: 20px;
-        overflow-y: auto;
-    }
-
-    .message {
-        margin-bottom: 15px;
-        padding: 12px 15px;
-        border-radius: 12px;
-        max-width: 70%;
-        animation: fadeIn 0.3s ease;
-    }
-
-    .user {
-        background: #00c6ff;
-        color: #000;
-        margin-left: auto;
-    }
-
-    .bot {
-        background: rgba(255,255,255,0.1);
-        color: #fff;
-        margin-right: auto;
-    }
-
-    @keyframes fadeIn {
-        from {opacity: 0; transform: translateY(10px);}
-        to {opacity: 1; transform: translateY(0);}
-    }
-
-    .input-area {
-        display: flex;
-        padding: 15px;
-        border-top: 1px solid rgba(255,255,255,0.1);
-    }
-
-    input {
-        flex: 1;
-        padding: 12px;
-        border-radius: 10px;
-        border: none;
-        outline: none;
-        font-size: 16px;
-    }
-
-    button {
-        margin-right: 10px;
-        padding: 12px 20px;
-        border: none;
-        border-radius: 10px;
-        background: #00c6ff;
-        color: black;
-        font-weight: bold;
-        cursor: pointer;
-        transition: 0.3s;
-    }
-
-    button:hover {
-        background: #00a2d4;
-    }
-
+body {
+    background: #0f172a;
+    color: white;
+    font-family: Arial;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+.container {
+    width: 600px;
+    background: #1e293b;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.chat {
+    height: 400px;
+    overflow-y: auto;
+    padding: 15px;
+}
+.msg {
+    margin: 10px;
+    padding: 10px;
+    border-radius: 10px;
+}
+.user {background: #38bdf8; color:black; text-align:right;}
+.bot {background: #334155;}
+.input {
+    display: flex;
+}
+input {
+    flex:1;
+    padding:10px;
+    border:none;
+}
+button {
+    padding:10px;
+    background:#38bdf8;
+    border:none;
+    cursor:pointer;
+}
 </style>
 </head>
 
 <body>
 
 <div class="container">
-    <header>🤖 AI Assistant</header>
+    <div class="chat" id="chat"></div>
 
-    <div class="chat-box" id="chatBox"></div>
-
-    <div class="input-area">
-        <button onclick="sendMessage()">إرسال</button>
-        <input type="text" id="userInput" placeholder="اكتب رسالتك...">
+    <div class="input">
+        <button onclick="send()">إرسال</button>
+        <input id="input" placeholder="اكتب هنا...">
     </div>
 </div>
 
 <script>
-const chatBox = document.getElementById("chatBox");
 
-function addMessage(text, sender) {
-    const msg = document.createElement("div");
-    msg.classList.add("message", sender);
-    msg.innerText = text;
-    chatBox.appendChild(msg);
-    chatBox.scrollTop = chatBox.scrollHeight;
+const chat = document.getElementById("chat");
+
+function add(text, type){
+    const div = document.createElement("div");
+    div.className = "msg " + type;
+    div.innerText = text;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
 }
 
-function sendMessage() {
-    const input = document.getElementById("userInput");
-    const text = input.value.trim();
-    if (!text) return;
+// 🧠 قاعدة بيانات ضخمة
+const brain = [
+    {keys:["مرحبا","اهلا","السلام"], replies:["أهلاً 👋","مرحبا فيك 😄","نورت!"]},
+    {keys:["كيف حالك"], replies:["أنا بخير 😎","تمام! وانت؟"]},
+    {keys:["اسمك"], replies:["أنا ذكاء اصطناعي 🤖"]},
+    {keys:["مين انت"], replies:["مساعدك الذكي 😏"]},
+    {keys:["بايثون","برمجة"], replies:["البرمجة ممتعة 🔥","تحب أساعدك في كود؟"]},
+    {keys:["لعبة","game"], replies:["تحب ألعاب؟ 🎮","أقدر أسويلك لعبة 😎"]},
+    {keys:["ذكاء اصطناعي"], replies:["مجالي المفضل 😏"]},
+    {keys:["شكرا"], replies:["العفو ❤️","أي وقت!"]},
+    {keys:["وداعا","باي"], replies:["مع السلامة 👋","نشوفك قريب"]},
+];
 
-    addMessage(text, "user");
-    input.value = "";
-
-    setTimeout(() => {
-        addMessage(generateAIResponse(text), "bot");
-    }, 700);
-}
-
-function generateAIResponse(input) {
+// 🧠 تحليل ذكي
+function smartReply(input){
     input = input.toLowerCase();
 
-    if (input.includes("مرحبا")) return "أهلاً بك! كيف أقدر أساعدك؟";
-    if (input.includes("اسمك")) return "أنا ذكاء اصطناعي متطور 🤖";
-    if (input.includes("كيف حالك")) return "أنا بخير دائماً 😄";
+    let bestScore = 0;
+    let bestReplies = ["ما فهمت عليك 🤔"];
 
-    return "هذا رد ذكي تجريبي... يمكنك ربط API حقيقي لاحقاً.";
+    for(let item of brain){
+        let score = 0;
+
+        for(let key of item.keys){
+            if(input.includes(key)){
+                score++;
+            }
+        }
+
+        if(score > bestScore){
+            bestScore = score;
+            bestReplies = item.replies;
+        }
+    }
+
+    return bestReplies[Math.floor(Math.random() * bestReplies.length)];
 }
 
-document.getElementById("userInput").addEventListener("keypress", function(e){
-    if(e.key === "Enter") sendMessage();
+function send(){
+    const input = document.getElementById("input");
+    const text = input.value.trim();
+    if(!text) return;
+
+    add(text,"user");
+    input.value = "";
+
+    setTimeout(()=>{
+        add(smartReply(text),"bot");
+    },500);
+}
+
+document.getElementById("input").addEventListener("keypress", e=>{
+    if(e.key === "Enter") send();
 });
+
 </script>
 
 </body>
