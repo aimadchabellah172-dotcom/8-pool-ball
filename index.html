@@ -2,65 +2,92 @@
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <title>8-Ball Pool Master - Legendary Edition</title>
+    <title>8-Ball Pool Legendary - Fixed Edition</title>
     <style>
-        :root { --bg-dark: #080a0f; --table-blue: #2a699c; --wood-dark: #3e2723; }
+        /* إعدادات الخلفية العامة للموقع */
         body { 
-            background-color: var(--bg-dark); color: white;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            height: 100vh; margin: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0b0f19; /* خلفية الموقع زرقاء داكنة جداً وليست سوداء تماماً */
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            height: 100vh; margin: 0; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
         }
 
-        /* واجهة المستخدم العلوية HUD */
-        #topUI {
-            width: 940px; display: flex; justify-content: space-between; align-items: center;
-            padding: 15px 0; z-index: 10;
+        /* حاوية اللعبة لضمان ظهور كل شيء في مكانه */
+        #gameContainer {
+            position: relative;
+            padding: 10px;
+            background: #151b26;
+            border-radius: 15px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
         }
-        .player-card { display: flex; align-items: center; gap: 15px; background: rgba(255,255,255,0.05); padding: 5px 20px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); }
-        .avatar { width: 50px; height: 50px; border-radius: 10px; border: 2px solid #ffd700; background-size: cover; position: relative; }
-        .level-badge { position: absolute; bottom: -5px; right: -5px; background: #4caf50; font-size: 10px; padding: 2px 5px; border-radius: 5px; }
-        .p-name { font-weight: bold; font-size: 18px; }
-        .match-info { text-align: center; }
-        .coin-prize { color: #ffd700; font-weight: bold; font-size: 20px; text-shadow: 0 0 10px rgba(255,215,0,0.5); }
 
-        /* منطقة الطاولة */
-        #container { position: relative; }
+        /* الواجهة العلوية HUD */
+        #headerUI {
+            width: 900px; display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 20px; box-sizing: border-box;
+        }
+        .player-info { display: flex; align-items: center; gap: 12px; }
+        .avatar { 
+            width: 50px; height: 50px; border-radius: 8px; border: 2px solid #fbc02d;
+            background: #333; display: flex; align-items: center; justify-content: center; font-weight: bold;
+        }
+        .details b { font-size: 18px; display: block; }
+        .details span { color: #888; font-size: 12px; }
+
+        .match-badge {
+            background: #d32f2f; padding: 4px 15px; border-radius: 20px; font-weight: bold;
+            font-size: 12px; box-shadow: 0 2px 10px rgba(211,47,47,0.4);
+        }
+        .prize-money { color: #ffd700; font-size: 22px; font-weight: bold; text-align: center; margin-top: 5px; }
+
+        /* منطقة الطاولة والقوة */
+        #mainArea { display: flex; align-items: center; gap: 20px; }
+        
         canvas { 
-            border: 22px solid var(--wood-dark); 
-            border-radius: 15px; 
-            box-shadow: 0 25px 80px rgba(0,0,0,0.9), inset 0 0 50px rgba(0,0,0,0.5);
-            background-color: var(--table-blue);
+            background-color: #2a699c; /* لون القماش الأزرق الظاهر في الصورة */
+            border: 18px solid #7b1e1e; /* الحواف الخشبية الحمراء */
+            border-radius: 12px;
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.5);
         }
 
-        /* مقياس القوة الجانبي */
-        #powerMeter {
-            position: absolute; right: -60px; top: 100px; width: 35px; height: 280px;
-            background: #111; border: 3px solid #333; border-radius: 8px; overflow: hidden;
+        /* مقياس القوة الجانبي المطور */
+        #powerBarWrapper {
+            width: 35px; height: 350px; background: #111; border: 2px solid #444;
+            border-radius: 8px; position: relative; overflow: hidden;
         }
-        #powerInner { width: 100%; position: absolute; bottom: 0; background: linear-gradient(to top, #f44336, #ffeb3b, #4caf50); transition: height 0.05s; }
+        #powerLevel {
+            width: 100%; position: absolute; bottom: 0;
+            background: linear-gradient(to top, #ff1744, #ffea00, #00e676);
+            transition: height 0.05s ease;
+        }
     </style>
 </head>
 <body>
 
-    <div id="topUI">
-        <div class="player-card">
-            <div class="avatar" style="background-image: url('https://via.placeholder.com/50/green/white?text=S')"><div class="level-badge">43</div></div>
-            <div><div class="p-name">Susan</div><div style="font-size: 12px; color: #888;">●●●●●○○</div></div>
+    <div id="headerUI">
+        <div class="player-info">
+            <div class="avatar" style="background: linear-gradient(45deg, #1b5e20, #4caf50);">S</div>
+            <div class="details"><b>Susan</b><span>Level 43 ★</span></div>
         </div>
-        <div class="match-info">
-            <div style="background: #b71c1c; padding: 2px 15px; border-radius: 10px; font-size: 12px; margin-bottom: 5px;">MATCH</div>
-            <div class="coin-prize">🪙 100</div>
+        
+        <div>
+            <div class="match-badge">MATCH</div>
+            <div class="prize-money">🪙 100</div>
         </div>
-        <div class="player-card" style="flex-direction: row-reverse; text-align: right;">
-            <div class="avatar" style="background-image: url('https://via.placeholder.com/50/red/white?text=B')"><div class="level-badge" style="background: #f44336;">78</div></div>
-            <div><div class="p-name">Brian</div><div style="font-size: 12px; color: #888;">○○○○○○○</div></div>
+
+        <div class="player-info" style="flex-direction: row-reverse; text-align: right;">
+            <div class="avatar" style="background: linear-gradient(45deg, #b71c1c, #f44336);">B</div>
+            <div class="details"><b>Brian</b><span>Level 78 ★</span></div>
         </div>
     </div>
 
-    <div id="container">
-        <canvas id="poolCanvas" width="940" height="470"></canvas>
-        <div id="powerMeter"><div id="powerInner" style="height: 0%"></div></div>
+    <div id="gameContainer">
+        <div id="mainArea">
+            <canvas id="poolCanvas" width="900" height="450"></canvas>
+            <div id="powerBarWrapper">
+                <div id="powerLevel" style="height: 0%"></div>
+            </div>
+        </div>
     </div>
 
 <script>
@@ -69,10 +96,9 @@ const ctx = canvas.getContext('2d');
 
 // --- إعدادات المحرك ---
 const BALL_R = 14;
-const POCKET_R = 30;
-const FRICTION = 0.988;
-const WALL_BOUNCE = 0.75;
-const BALL_COLORS = ["#FFF", "#FFD600", "#0D47A1", "#D32F2F", "#4A148C", "#FF6D00", "#1B5E20", "#3E2723", "#000", "#FFEE58", "#42A5F5", "#EF5350", "#AB47BC", "#FFAB40", "#66BB6A", "#C62828"];
+const POCKET_R = 32;
+const FRICTION = 0.988; // احتكاك واقعي جداً
+const COLORS = ["#FFFFFF", "#fdd835", "#1565c0", "#c62828", "#6a1b9a", "#ef6c00", "#2e7d32", "#4e342e", "#111111", "#fff176", "#64b5f6", "#e57373", "#ba68c8", "#ffb74d", "#81c784", "#a1887f"];
 
 let balls = [];
 let cueBall;
@@ -82,34 +108,44 @@ let currentPower = 0;
 
 class Ball {
     constructor(x, y, color, num, isCue = false) {
-        this.x = x; this.y = y; this.vx = 0; this.vy = 0;
-        this.color = color; this.num = num; this.isCue = isCue;
+        this.x = x; this.y = y;
+        this.vx = 0; this.vy = 0;
+        this.color = color;
+        this.num = num;
+        this.isCue = isCue;
         this.inPocket = false;
     }
 
     draw() {
         if (this.inPocket) return;
 
-        // الظل الواقعي
+        // الظل السفلي للكرة
         ctx.save();
-        ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 10; ctx.shadowOffsetX = 5; ctx.shadowOffsetY = 5;
+        ctx.shadowBlur = 10; ctx.shadowColor = "rgba(0,0,0,0.5)";
+        ctx.shadowOffsetX = 4; ctx.shadowOffsetY = 4;
 
-        // جسم الكرة بتدرج مركب (Specular Highlight)
-        let g = ctx.createRadialGradient(this.x - 5, this.y - 5, 2, this.x, this.y, BALL_R);
-        g.addColorStop(0, "#fff");
-        g.addColorStop(0.2, this.color);
-        g.addColorStop(1, "#000");
+        // رسم الكرة بتدرج ثلاثي الأبعاد
+        let grad = ctx.createRadialGradient(this.x - 5, this.y - 5, 2, this.x, this.y, BALL_R);
+        grad.addColorStop(0, "#ffffff"); // لمعة الضوء
+        grad.addColorStop(0.3, this.color);
+        grad.addColorStop(1, "#000000");
 
-        ctx.beginPath(); ctx.arc(this.x, this.y, BALL_R, 0, Math.PI*2);
-        ctx.fillStyle = g; ctx.fill();
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, BALL_R, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
         ctx.restore();
 
-        // الرقم والتصميم
+        // رسم الرقم (الدائرة البيضاء والعدد)
         if (!this.isCue) {
-            ctx.beginPath(); ctx.arc(this.x, this.y, BALL_R*0.5, 0, Math.PI*2);
-            ctx.fillStyle = "white"; ctx.fill();
-            ctx.fillStyle = "black"; ctx.font = "bold 10px Arial"; ctx.textAlign = "center";
-            ctx.fillText(this.num, this.x, this.y + 3.5);
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, BALL_R * 0.5, 0, Math.PI * 2);
+            ctx.fillStyle = "white";
+            ctx.fill();
+            ctx.fillStyle = "black";
+            ctx.font = "bold 10px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText(this.num, this.x, this.y + 4);
         }
     }
 
@@ -117,31 +153,11 @@ class Ball {
         if (this.inPocket) return;
         this.x += this.vx; this.y += this.vy;
         this.vx *= FRICTION; this.vy *= FRICTION;
+
         if (Math.hypot(this.vx, this.vy) < 0.1) { this.vx = 0; this.vy = 0; }
 
-        // تصادم الحواف (Cushions)
-        const margin = 10; 
-        if (this.x < BALL_R + margin || this.x > canvas.width - BALL_R - margin) {
-            this.vx *= -WALL_BOUNCE;
-            this.x = this.x < BALL_R + margin ? BALL_R + margin : canvas.width - BALL_R - margin;
-        }
-        if (this.y < BALL_R + margin || this.y > canvas.height - BALL_R - margin) {
-            this.vy *= -WALL_BOUNCE;
-            this.y = this.y < BALL_R + margin ? BALL_R + margin : canvas.height - BALL_R - margin;
-        }
-    }
-}
-
-function setupBalls() {
-    balls = [];
-    cueBall = new Ball(250, canvas.height/2, "#FFF", 0, true);
-    balls.push(cueBall);
-
-    // ترتيب المثلث الاحترافي
-    let count = 1;
-    const startX = 640;
-    for (let r = 0; r < 5; r++) {
-        for (let i = 0; i <= r; i++) {
-            let color = BALL_COLORS[count];
-            if (r === 2 && i === 1) color = "#000"; // الكرة 8 السوداء في المنتصف
-            balls.push(new Ball(startX + r*
+        // تصادم الحواف
+        const wall = 10;
+        if (this.x < BALL_R + wall || this.x > canvas.width - BALL_R - wall) {
+            this.vx *= -0.8;
+            this.x = this.x
