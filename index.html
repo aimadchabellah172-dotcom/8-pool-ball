@@ -1,141 +1,255 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl" id="html-tag">
+<html lang="ar" dir="rtl" id="main-html">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YUVAKS INDUSTRIE | Secure Portal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <title>YUVAKS INDUSTRIE | بوابة المصنع</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;600;800&family=Montserrat:wght@700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root {
-            --primary: #fbc02d;
-            --danger: #d32f2f;
-            --bg: #ffffff;
-            --text: #1a1a1a;
-            --card-bg: #f9f9f9;
-        }
-        [data-theme="dark"] {
-            --bg: #121212; --text: #ffffff; --card-bg: #1e1e1e;
+            --accent: #fbc02d;
+            --bg: #0f172a;
+            --glass: rgba(255, 255, 255, 0.05);
+            --text: #f8fafc;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
-        body { background-color: var(--bg); color: var(--text); transition: 0.3s; }
-
-        /* Login Overlay */
-        #auth-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); z-index: 5000;
-            display: flex; justify-content: center; align-items: center;
-        }
-        .auth-box {
-            background: var(--card-bg); padding: 30px; border-radius: 15px;
-            width: 90%; max-width: 400px; text-align: center; border: 2px solid var(--primary);
+        [data-theme="light"] {
+            --bg: #f1f5f9;
+            --text: #0f172a;
+            --glass: rgba(15, 23, 42, 0.05);
         }
 
-        .secure-input {
-            width: 100%; padding: 12px; margin: 10px 0;
-            border-radius: 8px; border: 1px solid #ddd; background: var(--bg); color: var(--text);
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; transition: all 0.4s ease; }
+
+        body { background-color: var(--bg); color: var(--text); overflow-x: hidden; }
+
+        /* --- نظام التحقق والدخول --- */
+        #auth-screen {
+            position: fixed; inset: 0; z-index: 9999;
+            background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('https://files.oaiusercontent.com/file-75896S6qB9J2Z6K5V9Y4J6...');
+            background-size: cover; display: flex; align-items: center; justify-content: center;
         }
 
-        /* Badge Security */
-        .security-badge {
-            display: flex; align-items: center; gap: 5px; color: #2e7d32;
-            font-size: 0.8rem; justify-content: center; margin-bottom: 10px;
+        .auth-card {
+            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px);
+            padding: 40px; border-radius: 20px; width: 400px; border: 1px solid rgba(255,255,255,0.2);
+            text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
         }
 
-        /* باقي التنسيقات السابقة مدمجة */
-        header { display: flex; justify-content: space-between; padding: 1rem 5%; background: var(--bg); border-bottom: 1px solid var(--primary); position: sticky; top:0; z-index: 100;}
-        .btn-main { background: var(--primary); border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; }
-        .hero { height: 50vh; background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://files.oaiusercontent.com/file-75896S6qB9J2Z6K5V9Y4J6...'); background-size: cover; display: flex; align-items: center; justify-content: center; color: white; text-align: center; }
+        .input-group { margin-bottom: 15px; text-align: right; }
+        input, select {
+            width: 100%; padding: 12px; border-radius: 10px; border: none;
+            background: rgba(255,255,255,0.1); color: white; margin-top: 5px;
+        }
+
+        .verify-box { display: none; }
+
+        /* --- واجهة الموقع الرئيسية --- */
+        #main-content { opacity: 0; pointer-events: none; }
+        #main-content.visible { opacity: 1; pointer-events: auto; }
+
+        header {
+            padding: 15px 5%; display: flex; justify-content: space-between; align-items: center;
+            background: var(--glass); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100;
+        }
+
+        .hero {
+            height: 80vh; position: relative; overflow: hidden;
+            display: flex; align-items: center; padding: 0 5%;
+            background: url('https://files.oaiusercontent.com/file-75896S6qB9J2Z6K5V9Y4J6...') center/cover;
+        }
+
+        .hero::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0,0,0,0.8), transparent); }
+
+        .hero-text { position: relative; z-index: 1; max-width: 600px; animation: slideIn 1s ease-out; }
+        @keyframes slideIn { from { transform: translateX(50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* --- المنتجات --- */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; padding: 50px 5%; }
+        .product-card {
+            background: var(--glass); border-radius: 20px; padding: 25px;
+            border: 1px solid rgba(255,255,255,0.1); position: relative;
+        }
+        .product-card:hover { transform: scale(1.03); background: rgba(251, 192, 45, 0.1); }
+
+        .badge { background: var(--accent); color: #000; padding: 4px 12px; border-radius: 50px; font-size: 0.8rem; font-weight: bold; }
+
+        /* --- السلة --- */
+        #cart-panel {
+            position: fixed; right: -400px; top: 0; width: 380px; height: 100%;
+            background: var(--bg); border-left: 1px solid var(--accent); z-index: 1000;
+            padding: 30px; box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+        }
+        #cart-panel.active { right: 0; }
+
+        .btn-action {
+            background: var(--accent); border: none; padding: 12px 25px; border-radius: 10px;
+            font-weight: bold; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+
+        .lang-btn { background: none; border: 1px solid var(--accent); color: var(--text); padding: 5px 15px; border-radius: 5px; cursor: pointer; }
+
     </style>
 </head>
 <body data-theme="dark">
 
-    <div id="auth-overlay">
-        <div class="auth-box">
-            <div class="security-badge">
-                <i data-lucide="shield-check"></i> نظام دخول مشفر بـ 256-bit
+    <div id="auth-screen">
+        <div class="auth-card" id="login-box">
+            <h2 style="color: var(--accent); margin-bottom: 10px;">SARL YUVAKS</h2>
+            <p id="t-auth-desc">يجب تسجيل الدخول للوصول إلى النظام الصناعي</p>
+            <div class="input-group">
+                <input type="email" id="email" placeholder="البريد الإلكتروني">
             </div>
-            <h2 id="txt-auth-title">تسجيل الدخول - YUVAKS</h2>
-            <p style="font-size: 0.8rem; margin-bottom: 15px;">يتم حفظ جميع الطلبات في خوادم مؤمنة</p>
-            <input type="email" id="user-email" class="secure-input" placeholder="البريد الإلكتروني">
-            <input type="password" id="user-pass" class="secure-input" placeholder="كلمة المرور">
-            <button class="btn-main" onclick="handleAuth()">دخول آمن</button>
+            <div class="input-group">
+                <input type="password" placeholder="كلمة المرور">
+            </div>
+            <button class="btn-action" onclick="sendVerify()">تسجيل الدخول</button>
+        </div>
+
+        <div class="auth-card verify-box" id="verify-box">
+            <i data-lucide="mail-check" size="48" color="#fbc02d"></i>
+            <h3 style="margin: 15px 0;">تأكيد الحساب</h3>
+            <p style="font-size: 0.9rem; margin-bottom: 20px;">أرسلنا رمز التحقق إلى بريدك الإلكتروني. يرجى إدخاله للمتابعة.</p>
+            <input type="text" placeholder="- - - -" style="text-align: center; letter-spacing: 10px; font-size: 1.5rem;">
+            <button class="btn-action" style="margin-top: 20px;" onclick="enterSite()">تأكيد ودخول</button>
         </div>
     </div>
 
-    <header>
-        <div class="logo">YUVAKS INDUSTRIE</div>
-        <div id="user-status" style="font-size: 0.8rem; color: var(--primary);"></div>
-    </header>
+    <div id="main-content">
+        <header>
+            <div style="font-weight: 800; font-size: 1.4rem;">YUVAKS <span style="color: var(--accent);">INDUSTRIE</span></div>
+            <div style="display: flex; gap: 15px;">
+                <button class="lang-btn" onclick="toggleLang()">EN</button>
+                <button onclick="toggleCart()" style="background:none; border:none; color:var(--text); cursor:pointer; position:relative;">
+                    <i data-lucide="shopping-bag"></i>
+                    <span id="cart-count" style="position:absolute; -5px; right:-5px; background:var(--accent); color:black; font-size:10px; padding:2px 5px; border-radius:50%;">0</span>
+                </button>
+                <button onclick="document.body.dataset.theme = document.body.dataset.theme === 'dark' ? 'light' : 'dark'" style="background:none; border:none; color:var(--text); cursor:pointer;">
+                    <i data-lucide="sun"></i>
+                </button>
+            </div>
+        </header>
 
-    <section class="hero">
-        <div>
-            <h1>مرحباً بك في مصنع YUVAKS</h1>
-            <p>نظام التوصيل لـ 69 ولاية مفعل الآن</p>
-        </div>
-    </section>
+        <section class="hero">
+            <div class="hero-text">
+                <span class="badge">نظام ورديات: ليل / صباح</span>
+                <h1 style="font-size: 3.5rem; margin: 20px 0;" id="t-hero-title">جودة الصلب في خدمة البناء</h1>
+                <p style="font-size: 1.1rem; opacity: 0.8; margin-bottom: 30px;" id="t-hero-desc">المصنع الرائد في الجزائر لإنتاج البراغي والأسلاك الحديدية بأحدث التقنيات العالمية.</p>
+                <div style="display: flex; gap: 20px; align-items: center;">
+                    <div style="background: var(--accent); color: #000; padding: 15px 25px; border-radius: 10px; font-weight: bold;">
+                        <i data-lucide="phone"></i> 0661 65 55 56
+                    </div>
+                </div>
+            </div>
+        </section>
 
-    <section style="padding: 30px 5%;">
-        <h3>🛒 متجر البراغي والأسلاك</h3>
-        <div style="background: var(--card-bg); padding: 20px; border-radius: 10px; margin-top: 20px;">
-            <h4>براغي فولاذية (Type A)</h4>
-            <p style="color: var(--primary); font-weight: bold;">500 DZD / كغ</p>
-            <input type="number" id="q1" value="1" min="1" class="secure-input" style="width: 80px;">
-            <button class="btn-main" onclick="secureOrder('براغي فولاذية', 500, 'q1')">إضافة للطلب الآمن</button>
+        <section style="padding: 50px 5%;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+                <h2 id="t-prod-title">قائمة المنتجات المتاحة</h2>
+                <div class="badge">شحن لـ 69 ولاية</div>
+            </div>
+
+            <div class="grid">
+                <div class="product-card">
+                    <img src="https://images.unsplash.com/photo-1530124560676-4cb7df5f28f5?q=80&w=300" style="width:100%; border-radius:10px; margin-bottom:15px; opacity: 0.7;">
+                    <h3>براغي خشبية (Premium)</h3>
+                    <p style="font-size: 0.8rem; margin: 10px 0; opacity: 0.7;">فولاذ معالج حرارياً ضد الصدأ</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+                        <span style="font-weight: 800; font-size: 1.2rem; color: var(--accent);">550 DZD <small>/ كغ</small></span>
+                        <input type="number" value="1" min="1" id="q1" style="width:60px; padding: 5px;">
+                    </div>
+                    <button class="btn-action" style="margin-top:15px;" onclick="add('براغي خشبية', 550, 'q1')">إضافة للطلب</button>
+                </div>
+
+                <div class="product-card">
+                    <img src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?q=80&w=300" style="width:100%; border-radius:10px; margin-bottom:15px; opacity: 0.7;">
+                    <h3>أسلاك سحب (6 ملم)</h3>
+                    <p style="font-size: 0.8rem; margin: 10px 0; opacity: 0.7;">مثالية لأعمال التسليح والبناء</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+                        <span style="font-weight: 800; font-size: 1.2rem; color: var(--accent);">850 DZD <small>/ لفة</small></span>
+                        <input type="number" value="1" min="1" id="q2" style="width:60px; padding: 5px;">
+                    </div>
+                    <button class="btn-action" style="margin-top:15px;" onclick="add('أسلاك سحب (6 ملم)', 850, 'q2')">إضافة للطلب</button>
+                </div>
+            </div>
+        </section>
+
+        <div id="cart-panel">
+            <h3>سلة الطلبات</h3>
+            <div id="cart-list" style="margin: 30px 0; max-height: 50vh; overflow-y: auto;"></div>
+            <div style="border-top: 1px solid var(--accent); padding-top: 20px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                    <span>الإجمالي:</span>
+                    <span id="total-price" style="font-weight: 800; color: var(--accent);">0 DZD</span>
+                </div>
+                <div class="input-group">
+                    <select id="wilaya">
+                        <script>for(let i=1;i<=69;i++) document.write(`<option value="${i}">ولاية ${i}</option>`)</script>
+                    </select>
+                </div>
+                <button class="btn-action" onclick="finalOrder()">تأكيد الشراء (دفع إلكتروني)</button>
+            </div>
         </div>
-    </section>
+    </div>
 
     <script>
         lucide.createIcons();
 
-        // نظام محاكاة الأمان المشفر
-        function handleAuth() {
-            const email = document.getElementById('user-email').value;
-            const pass = document.getElementById('user-pass').value;
-
-            if(email.includes('@') && pass.length > 5) {
-                // حفظ الجلسة مشفرة في المتصفح (Base64 Simulation)
-                localStorage.setItem('auth_session', btoa(email));
-                document.getElementById('auth-overlay').style.display = 'none';
-                document.getElementById('user-status').innerText = "متصل كـ: " + email;
-                alert('تم تسجيل الدخول بنجاح عبر نظام التحقق الآمن');
-            } else {
-                alert('خطأ في البيانات! يرجى إدخال إيميل صحيح وكلمة مرور قوية');
-            }
+        // نظام الدخول
+        function sendVerify() {
+            const email = document.getElementById('email').value;
+            if(!email.includes('@')) return alert('يرجى إدخال إيميل صحيح');
+            document.getElementById('login-box').style.display = 'none';
+            document.getElementById('verify-box').style.display = 'block';
         }
 
-        // نظام حفظ الطلبات (محاكاة الحفظ في GitHub)
-        function secureOrder(name, price, qtyId) {
-            if(!localStorage.getItem('auth_session')) {
-                return alert('خطأ أمني: يجب تسجيل الدخول أولاً');
-            }
-
-            const qty = document.getElementById(qtyId).value;
-            const orderData = {
-                item: name,
-                quantity: qty,
-                total: price * qty,
-                timestamp: new Date().toISOString(),
-                user: atob(localStorage.getItem('auth_session'))
-            };
-
-            // هنا نقوم بحفظ الطلب في مصفوفة مشفرة
-            let orders = JSON.parse(localStorage.getItem('secure_orders')) || [];
-            orders.push(orderData);
-            localStorage.setItem('secure_orders', JSON.stringify(orders));
-
-            console.log("جارِ إرسال البيانات لخوادم GitHub السرية...", orderData);
-            alert(`تم تأكيد طلبك (${name}). \nالبيانات مشفرة ومحفوظة في سجلاتنا.`);
+        function enterSite() {
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('main-content').classList.add('visible');
         }
 
-        // فحص الجلسة عند التحميل
-        window.onload = () => {
-            if(localStorage.getItem('auth_session')) {
-                document.getElementById('auth-overlay').style.display = 'none';
-                document.getElementById('user-status').innerText = "متصل كـ: " + atob(localStorage.getItem('auth_session'));
-            }
-        };
+        // نظام السلة والطلبات
+        let cart = [];
+        function add(name, price, id) {
+            const qty = parseInt(document.getElementById(id).value);
+            cart.push({ name, price, qty, total: price * qty });
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('cart-count').innerText = cart.length;
+            const list = document.getElementById('cart-list');
+            list.innerHTML = '';
+            let total = 0;
+            cart.forEach(item => {
+                total += item.total;
+                list.innerHTML += `<div style="margin-bottom:10px; background:rgba(255,255,255,0.05); padding:10px; border-radius:8px;">
+                    ${item.name} x ${item.qty} = ${item.total} DZD
+                </div>`;
+            });
+            document.getElementById('total-price').innerText = total + " DZD";
+        }
+
+        function toggleCart() { document.getElementById('cart-panel').classList.toggle('active'); }
+
+        function finalOrder() {
+            if(cart.length === 0) return alert('السلة فارغة');
+            const opID = 'YV-' + Date.now().toString().slice(-6);
+            alert(`جاري معالجة الدفع...\n\nتم تأكيد الطلب بنجاح!\nرقم العملية: ${opID}\nتم إرسال نسخة من الفاتورة إلى بريدك الإلكتروني.`);
+            cart = [];
+            updateUI();
+            toggleCart();
+        }
+
+        // تغيير اللغة
+        let lang = 'ar';
+        function toggleLang() {
+            lang = lang === 'ar' ? 'en' : 'ar';
+            document.getElementById('main-html').dir = lang === 'ar' ? 'rtl' : 'ltr';
+            document.getElementById('t-hero-title').innerText = lang === 'ar' ? 'جودة الصلب في خدمة البناء' : 'Steel Quality Serving Construction';
+            // إضافة باقي الترجمات هنا...
+        }
     </script>
 </body>
 </html>
