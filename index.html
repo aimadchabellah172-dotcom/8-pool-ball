@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>استوديو الرسم الاحترافي</title>
+    <title>استوديو الرسم الاحترافي المطوّر</title>
     <style>
-        /* ستايل وتصميم الموقع */
         :root {
-            --bg-color: #121214;
-            --sidebar-color: #1a1a1e;
+            --bg-color: #0f0f12;
+            --sidebar-color: #16161a;
             --accent-color: #6366f1;
             --accent-hover: #4f46e5;
             --text-color: #f3f4f6;
-            --border-color: #2d2d34;
+            --border-color: #27272a;
         }
 
         * {
@@ -33,64 +32,68 @@
 
         /* شريط الأدوات الجانبي */
         .sidebar {
-            width: 320px;
+            width: 340px;
             background-color: var(--sidebar-color);
             border-left: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
             padding: 20px;
-            gap: 20px;
+            gap: 15px;
             overflow-y: auto;
-            box-shadow: -5px 0 15px rgba(0,0,0,0.5);
+            box-shadow: -5px 0 20px rgba(0,0,0,0.6);
             z-index: 10;
         }
 
         h2 {
-            font-size: 1.2rem;
+            font-size: 1.15rem;
             text-align: center;
             color: var(--accent-color);
             border-bottom: 1px solid var(--border-color);
-            padding-bottom: 10px;
+            padding-bottom: 12px;
             margin-bottom: 5px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
         }
 
         .control-group {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
         }
 
         label {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: #a1a1aa;
+            font-weight: 600;
         }
 
-        /* التحكم بالألوان والفرش */
+        /* حاويات التحكم والتفاعل */
+        .row-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
         .color-picker-wrapper {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            width: 100%;
         }
 
         input[type="color"] {
             -webkit-appearance: none;
             border: none;
-            width: 40px;
-            height: 40px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             cursor: pointer;
             background: none;
             transition: transform 0.2s;
+            flex-shrink: 0;
         }
 
-        input[type="color"]:hover {
-            transform: scale(1.1);
-        }
-
-        input[type="color"]::-webkit-color-swatch-wrapper {
-            padding: 0;
-        }
-
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
         input[type="color"]::-webkit-color-swatch {
             border: 2px solid var(--border-color);
             border-radius: 50%;
@@ -98,13 +101,13 @@
 
         select, input[type="range"], input[type="text"] {
             width: 100%;
-            background-color: #27272a;
+            background-color: #1e1e24;
             border: 1px solid var(--border-color);
             color: white;
             padding: 10px;
             border-radius: 8px;
             outline: none;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             transition: all 0.3s;
         }
 
@@ -112,30 +115,41 @@
             border-color: var(--accent-color);
         }
 
-        /* الأزرار وتأثيراتها الحركية */
+        /* شبكة الأزرار السريعة والتراجع */
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
         .btn {
             background-color: var(--accent-color);
             color: white;
             border: none;
-            padding: 12px;
+            padding: 10px;
             border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
-            transition: all 0.3s ease;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         .btn:hover {
             background-color: var(--accent-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.25);
         }
 
-        .btn:active {
-            transform: translateY(0);
+        .btn-secondary {
+            background-color: #27272a;
+            border: 1px solid var(--border-color);
+        }
+        .btn-secondary:hover {
+            background-color: #3f3f46;
         }
 
         .btn-danger {
@@ -143,27 +157,32 @@
         }
         .btn-danger:hover {
             background-color: #dc2626;
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+            box-shadow: 0 4px 10px rgba(239, 68, 68, 0.25);
         }
 
-        .btn-secondary {
-            background-color: #3f3f46;
+        /* أزرار مخصصة بنمط الأيقونة */
+        .btn-tool {
+            background-color: #1e1e24;
+            border: 1px solid var(--border-color);
+            color: #a1a1aa;
         }
-        .btn-secondary:hover {
-            background-color: #52525b;
-            box-shadow: 0 4px 12px rgba(82, 82, 91, 0.3);
+        .btn-tool.active {
+            background-color: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
         }
 
         /* قائمة الصفحات (الأوراق) */
         .pages-section {
             border-top: 1px solid var(--border-color);
-            padding-top: 15px;
+            padding-top: 12px;
+            margin-top: 5px;
         }
 
         .pages-list {
             list-style: none;
-            margin-top: 10px;
-            max-height: 150px;
+            margin-top: 8px;
+            max-height: 120px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
@@ -171,25 +190,22 @@
         }
 
         .page-item {
-            background-color: #27272a;
+            background-color: #1e1e24;
             padding: 8px 12px;
             border-radius: 6px;
             cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             transition: background 0.2s;
             border: 1px solid transparent;
         }
 
-        .page-item:hover {
-            background-color: #3f3f46;
-        }
-
+        .page-item:hover { background-color: #27272a; }
         .page-item.active {
             border-color: var(--accent-color);
-            background-color: rgba(99, 102, 241, 0.1);
+            background-color: rgba(99, 102, 241, 0.08);
         }
 
         .delete-page-btn {
@@ -197,10 +213,10 @@
             border: none;
             color: #ef4444;
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
-        /* منطقة الرسم الرئيسية */
+        /* مساحة العمل */
         .canvas-area {
             flex-grow: 1;
             display: flex;
@@ -208,19 +224,23 @@
             align-items: center;
             justify-content: center;
             position: relative;
-            background-image: radial-gradient(#2d2d34 1px, transparent 1px);
-            background-size: 20px 20px;
+            background-color: #121215;
             padding: 20px;
+        }
+
+        /* ميزة الشبكة الإرشادية الاختيارية */
+        .canvas-area.grid-active {
+            background-image: radial-gradient(#27272a 1px, transparent 1px);
+            background-size: 20px 20px;
         }
 
         .canvas-container {
             background-color: white;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
             border-radius: 8px;
             overflow: hidden;
             position: relative;
-            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            animation: popIn 0.5s ease-out;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.2);
         }
 
         canvas {
@@ -228,115 +248,111 @@
             cursor: crosshair;
         }
 
-        /* تأثيرات حركية (Animations) */
-        @keyframes popIn {
-            from {
-                transform: scale(0.9) translateY(20px);
-                opacity: 0;
-            }
-            to {
-                transform: scale(1) translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .canvas-switch-animation {
-            animation: switchPage 0.4s ease-in-out;
-        }
-
-        @keyframes switchPage {
-            0% { transform: scale(1) rotateY(0deg); opacity: 1; }
-            50% { transform: scale(0.95) rotateY(90deg); opacity: 0.5; }
-            100% { transform: scale(1) rotateY(0deg); opacity: 1; }
-        }
-
-        /* مؤشر الفرشاة العائم */
+        /* مؤشر الدائرة العائمة أسفل الفأرة */
         .brush-preview {
-            width: 20px;
-            height: 20px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
-            border: 2px solid white;
-            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 5px rgba(0,0,0,0.4);
             position: absolute;
             pointer-events: none;
             transform: translate(-50%, -50%);
             display: none;
             z-index: 100;
         }
+
+        /* تأثير سحب اللون (القطارة) */
+        .eyedropper-active canvas {
+            cursor: cell !important;
+        }
     </style>
 </head>
 <body>
 
-    <!-- شريط الأدوات والتحكم -->
     <div class="sidebar">
-        <h2>استوديو الإبداع</h2>
+        <h2>استوديو الإبداع v2</h2>
 
-        <!-- الألوان والشفافية -->
+        <!-- قطارة الألوان + اختيار اللون -->
         <div class="control-group">
-            <label>لون الرسم / درجة اللون</label>
+            <label>اللون ودرجة الشفافية</label>
             <div class="color-picker-wrapper">
                 <input type="color" id="colorPicker" value="#6366f1">
+                <button class="btn btn-tool" id="eyedropperBtn" title="أداة سحب اللون من اللوحة (القطارة)">🧪 قطارة</button>
                 <input type="range" id="opacity" min="1" max="100" value="100">
-                <span id="opacityVal">100%</span>
+                <span id="opacityVal" style="font-size:0.75rem; min-width:35px;">100%</span>
             </div>
         </div>
 
-        <!-- نوع الفرشاة وأسلوب الألوان -->
+        <!-- الفرشاة والأشكال الهندسية -->
         <div class="control-group">
-            <label>نوع الفرشاة (نوع الألوان)</label>
+            <label>أداة الرسم الحالية</label>
             <select id="brushType">
-                <option value="solid">ألوان عادية (قلم صلب)</option>
-                <option value="watercolor">ألوان مائية (دمج لطيف)</option>
-                <option value="pencil">قلم رصاص (خشن ومظلل)</option>
-                <option value="eraser">الممحاة</option>
+                <option value="solid">🖌️ فرشاة عادية</option>
+                <option value="watercolor">💧 ألوان مائية ناعمة</option>
+                <option value="pencil">✏️ قلم رصاص مظهر خشن</option>
+                <option value="rect">⬛ رسم مستطيل</option>
+                <option value="circle">⚪ رسم دائرة</option>
+                <option value="line">📏 رسم خط مستقيم</option>
+                <option value="eraser">🧽 الممحاة</option>
             </select>
         </div>
 
         <!-- التظليل والنعومة -->
         <div class="control-group">
-            <label>مستوى التظليل (ضبابية الفرشاة)</label>
-            <input type="range" id="shadowBlur" min="0" max="30" value="0">
-            <span id="shadowVal">بدون تظليل</span>
+            <label>مستوى تظليل الحواف والعمق</label>
+            <input type="range" id="shadowBlur" min="0" max="40" value="0">
+            <span id="shadowVal" style="font-size:0.75rem;">بدون تظليل</span>
         </div>
 
-        <!-- حجم وحجم الفرشاة -->
+        <!-- حجم الفأرة والفرشاة -->
         <div class="control-group">
-            <label>عرض الفرشاة / الممحاة</label>
+            <label>حجم الفرشاة / الأشكال</label>
             <input type="range" id="lineWidth" min="1" max="80" value="10">
-            <span id="widthVal">10px</span>
+            <span id="widthVal" style="font-size:0.75rem;">10px</span>
         </div>
 
-        <button class="btn btn-secondary" id="clearCanvas">مسح الورقة الحالية</button>
-        <button class="btn" id="downloadImage">حفظ الرسمة كـ PNG</button>
+        <!-- نظام التراجع والتقدم -->
+        <div class="btn-grid">
+            <button class="btn btn-secondary" id="undoBtn">↪️ تراجع</button>
+            <button class="btn btn-secondary" id="redoBtn">↩️ تقدم</button>
+        </div>
+
+        <!-- أدوات التحكم الإضافية -->
+        <div class="btn-grid">
+            <button class="btn btn-secondary" id="toggleGridBtn">🌐 خطوط الشبكة</button>
+            <button class="btn btn-danger" id="clearCanvas">🧹 مسح الكل</button>
+        </div>
+
+        <button class="btn" id="downloadImage">💾 حفظ اللوحة PNG</button>
 
         <!-- إدارة الأوراق الجديدة -->
         <div class="pages-section">
-            <label style="font-weight: bold; color: white;">إدارة الأوراق والمشاريع</label>
-            <div class="control-group" style="margin-top: 10px; flex-direction: row; gap: 5px;">
-                <input type="text" id="newPageName" placeholder="اسم الورقة..." style="padding: 8px;">
-                <button class="btn" id="addPageBtn" style="padding: 8px 12px;">+</button>
+            <label style="color: white;">إدارة اللوحات الإضافية</label>
+            <div class="control-group" style="margin-top: 6px; flex-direction: row; gap: 5px;">
+                <input type="text" id="newPageName" placeholder="اسم ورقة الرسم..." style="padding: 8px;">
+                <button class="btn" id="addPageBtn" style="padding: 8px 12px; font-size:1.1rem;">+</button>
             </div>
-            <ul class="pages-list" id="pagesList">
-                <!-- الأوراق المضافة ستظهر هنا ديناميكياً -->
-            </ul>
+            <ul class="pages-list" id="pagesList"></ul>
         </div>
     </div>
 
-    <!-- مساحة الرسم الكانفاس -->
-    <div class="canvas-area">
+    <!-- لوحة الرسم والعمل -->
+    <div class="canvas-area grid-active" id="canvasArea">
         <div class="canvas-container" id="canvasContainer">
-            <canvas id="paintCanvas" width="800" height="600"></canvas>
+            <canvas id="paintCanvas" width="850" height="600"></canvas>
         </div>
     </div>
 
-    <!-- مؤشر الفرشاة التفاعلي -->
     <div class="brush-preview" id="brushPreview"></div>
 
     <script>
         const canvas = document.getElementById('paintCanvas');
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const canvasArea = document.getElementById('canvasArea');
         const container = document.getElementById('canvasContainer');
         const colorPicker = document.getElementById('colorPicker');
+        const eyedropperBtn = document.getElementById('eyedropperBtn');
         const opacityRange = document.getElementById('opacity');
         const opacityVal = document.getElementById('opacityVal');
         const brushType = document.getElementById('brushType');
@@ -344,6 +360,10 @@
         const shadowVal = document.getElementById('shadowVal');
         const lineWidthRange = document.getElementById('lineWidth');
         const widthVal = document.getElementById('widthVal');
+        
+        const undoBtn = document.getElementById('undoBtn');
+        const redoBtn = document.getElementById('redoBtn');
+        const toggleGridBtn = document.getElementById('toggleGridBtn');
         const clearBtn = document.getElementById('clearCanvas');
         const downloadBtn = document.getElementById('downloadImage');
         const brushPreview = document.getElementById('brushPreview');
@@ -353,105 +373,89 @@
         const pagesList = document.getElementById('pagesList');
 
         let isDrawing = false;
-        let lastX = 0;
-        let lastY = 0;
+        let isEyedropperActive = false;
+        let lastX = 0, lastY = 0;
+        let startX = 0, startY = 0; // للأشكال الهندسية
 
-        // نظام إدارة الأوراق المتعددة وحفظها تلقائياً
-        let pages = {
-            "اللوحة الرئيسية": canvas.toDataURL()
-        };
+        // نظام تخزين حالات الرسم للتراجع والإعادة (Undo/Redo)
+        let undoStack = [];
+        let redoStack = [];
+        const maxHistory = 20; // الحد الأقصى لعمليات التراجع
+
+        // قائمة الصفحات وإدارتها
+        let pages = { "اللوحة الرئيسية": null };
         let currentPageName = "اللوحة الرئيسية";
 
-        // إعداد الكانفاس الأولي بخلفية بيضاء
         function clearCanvasToWhite() {
             ctx.fillStyle = "#ffffff";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
+
+        // تهيئة البدء
         clearCanvasToWhite();
-        pages["اللوحة الرئيسية"] = canvas.toDataURL(); // حفظ اللوحة الفارغة الأولى
+        saveState(); // أول حالة فارغة
+        pages["اللوحة الرئيسية"] = canvas.toDataURL();
 
-        // تحديث قائمة الأوراق في الواجهة
-        function renderPagesList() {
-            pagesList.innerHTML = '';
-            Object.keys(pages).forEach(name => {
-                const li = document.createElement('li');
-                li.className = `page-item ${name === currentPageName ? 'active' : ''}`;
-                li.innerHTML = `
-                    <span class="page-title">${name}</span>
-                    ${name !== "اللوحة الرئيسية" ? `<button class="delete-page-btn" onclick="deletePage(event, '${name}')">🗑️</button>` : ''}
-                `;
-                li.addEventListener('click', () => switchPage(name));
-                pagesList.appendChild(li);
-            });
+        // حفظ الحالة للتراجع والإعادة
+        function saveState() {
+            if (undoStack.length >= maxHistory) {
+                undoStack.shift();
+            }
+            undoStack.push(canvas.toDataURL());
+            redoStack = []; // تفريغ الإعادة عند الرسم الجديد
         }
 
-        // التبديل بين الأوراق مع تأثير حركي (Animation)
-        function switchPage(name) {
-            if (name === currentPageName) return;
-            
-            // حفظ حالة الصفحة الحالية أولاً
-            pages[currentPageName] = canvas.toDataURL();
-
-            container.classList.add('canvas-switch-animation');
-            
-            setTimeout(() => {
-                currentPageName = name;
-                const img = new Image();
-                img.onload = function() {
-                    clearCanvasToWhite();
-                    ctx.drawImage(img, 0, 0);
-                };
-                img.src = pages[name] || canvas.toDataURL();
-                renderPagesList();
-            }, 200);
-
-            setTimeout(() => {
-                container.classList.remove('canvas-switch-animation');
-            }, 400);
-        }
-
-        // إضافة ورقة جديدة وتسميتها
-        addPageBtn.addEventListener('click', () => {
-            const name = newPageNameInput.value.trim();
-            if (!name) {
-                alert("يرجى إدخال اسم للورقة الجديدة!");
-                return;
+        // تراجع
+        undoBtn.addEventListener('click', () => {
+            if (undoStack.length > 1) {
+                redoStack.push(undoStack.pop());
+                const prevState = undoStack[undoStack.length - 1];
+                loadStateFromURL(prevState);
             }
-            if (pages[name]) {
-                alert("هذا الاسم موجود بالفعل!");
-                return;
-            }
-
-            // حفظ الصفحة الحالية أولاً
-            pages[currentPageName] = canvas.toDataURL();
-
-            // إنشاء الورقة الجديدة
-            currentPageName = name;
-            clearCanvasToWhite();
-            pages[name] = canvas.toDataURL();
-            
-            newPageNameInput.value = '';
-            renderPagesList();
-            
-            // تأثير حركي لطيف للورقة الجديدة
-            container.style.animation = 'none';
-            setTimeout(() => { container.style.animation = 'popIn 0.5s ease-out'; }, 10);
         });
 
-        // حذف ورقة رسم
-        window.deletePage = function(event, name) {
-            event.stopPropagation();
-            if (confirm(`هل أنت متأكد من حذف ورقة "${name}"؟`)) {
-                delete pages[name];
-                if (currentPageName === name) {
-                    switchPage("اللوحة الرئيسية");
-                } else {
-                    renderPagesList();
-                }
+        // تقدم
+        redoBtn.addEventListener('click', () => {
+            if (redoStack.length > 0) {
+                const nextState = redoStack.pop();
+                undoStack.push(nextState);
+                loadStateFromURL(nextState);
             }
-        };
+        });
 
-        // تعديل خصائص الفرشاة قبل الرسم بناءً على الخيارات المحددة
+        function loadStateFromURL(url) {
+            const img = new Image();
+            img.onload = function() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0);
+                pages[currentPageName] = canvas.toDataURL(); // تزامن
+            };
+            img.src = url;
+        }
+
+        // تفعيل وإيقاف خطوط الإرشاد (الشبكة)
+        toggleGridBtn.addEventListener('click', () => {
+            canvasArea.classList.toggle('grid-active');
+            toggleGridBtn.classList.toggle('active');
+        });
+
+        // تفعيل أداة القطارة (سحب اللون)
+        eyedropperBtn.addEventListener('click', () => {
+            isEyedropperActive = !isEyedropperActive;
+            eyedropperBtn.classList.toggle('active', isEyedropperActive);
+            if (isEyedropperActive) {
+                canvasArea.classList.add('eyedropper-active');
+            } else {
+                canvasArea.classList.remove('eyedropper-active');
+            }
+        });
+
+        // دالة تحويل درجات الألوان من مصفوفة بكسل إلى صيغة HEX المناسبة لـ HTML
+        function rgbToHex(r, g, b) {
+            return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+        }
+
+        // معالجة خيارات الفرش والشفافية والتظليل
         function applyBrushSettings() {
             const color = colorPicker.value;
             const opacity = opacityRange.value / 100;
@@ -462,7 +466,6 @@
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
 
-            // تحويل اللون لـ RGBA للتحكم بالشفافية
             const r = parseInt(color.slice(1, 3), 16);
             const g = parseInt(color.slice(3, 5), 16);
             const b = parseInt(color.slice(5, 7), 16);
@@ -470,77 +473,119 @@
             ctx.shadowColor = 'transparent';
             ctx.shadowBlur = 0;
 
-            const selectedStyle = brushType.value;
+            const tool = brushType.value;
 
-            if (selectedStyle === 'eraser') {
-                ctx.strokeStyle = '#ffffff'; // الممحاة تمسح باللون الأبيض
+            if (tool === 'eraser') {
+                ctx.strokeStyle = '#ffffff';
                 ctx.globalAlpha = 1.0;
-            } else if (selectedStyle === 'solid') {
+            } else if (tool === 'solid' || tool === 'rect' || tool === 'circle' || tool === 'line') {
                 ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${opacity})`;
                 ctx.globalAlpha = 1.0;
                 if (shadow > 0) {
                     ctx.shadowColor = `rgba(${r}, ${g}, ${b}, ${opacity})`;
                     ctx.shadowBlur = shadow;
                 }
-            } else if (selectedStyle === 'watercolor') {
-                // ميزة الألوان المائية: تأثير تدرج مدمج وشفافية فائقة مع حواف ناعمة
-                ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${opacity * 0.15})`;
-                ctx.globalAlpha = 0.5;
-                ctx.shadowColor = `rgba(${r}, ${g}, ${b}, ${opacity * 0.3})`;
-                ctx.shadowBlur = size * 0.5; // التظليل يتناسب مع حجم الفرشاة للحصول على طابع مائي
-            } else if (selectedStyle === 'pencil') {
-                // ميزة قلم الرصاص: خطوط خشنة وتظليل متفرق
+            } else if (tool === 'watercolor') {
+                ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${opacity * 0.12})`;
+                ctx.globalAlpha = 0.4;
+                ctx.shadowColor = `rgba(${r}, ${g}, ${b}, ${opacity * 0.25})`;
+                ctx.shadowBlur = size * 0.4;
+            } else if (tool === 'pencil') {
                 ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${opacity * 0.7})`;
-                ctx.globalAlpha = 0.8;
+                ctx.globalAlpha = 0.75;
                 if (shadow > 0) {
-                    ctx.shadowColor = `rgba(${r}, ${g}, ${b}, ${opacity * 0.5})`;
+                    ctx.shadowColor = `rgba(${r}, ${g}, ${b}, ${opacity * 0.4})`;
                     ctx.shadowBlur = shadow * 0.3;
                 }
             }
         }
 
-        // حركة الرسم على الكانفاس
-        function draw(e) {
-            if (!isDrawing) return;
+        // بدء الرسم أو التفاعل بالضغط
+        canvas.addEventListener('mousedown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
 
-            applyBrushSettings();
+            // إذا كانت القطارة مفعلة
+            if (isEyedropperActive) {
+                const pixel = ctx.getImageData(x, y, 1, 1).data;
+                const hexColor = rgbToHex(pixel[0], pixel[1], pixel[2]);
+                colorPicker.value = hexColor;
+                updateBrushPreview();
+                // إيقاف الأداة بعد الاختيار تلقائياً لتسهيل الرسم
+                isEyedropperActive = false;
+                eyedropperBtn.classList.remove('active');
+                canvasArea.classList.remove('eyedropper-active');
+                return;
+            }
+
+            isDrawing = true;
+            [lastX, lastY] = [x, y];
+            [startX, startY] = [x, y];
+
+            // حفظ الحالة اللحظية قبل بدء رسم الأشكال التفاعلية (لمنع تكرار الرسم)
+            if (['rect', 'circle', 'line'].includes(brushType.value)) {
+                this.tempSnapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            }
+        });
+
+        // حركة المؤشر للرسم والأشكال التفاعلية
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isDrawing) return;
 
             const rect = canvas.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
 
-            ctx.beginPath();
-            ctx.moveTo(lastX, lastY);
-            ctx.lineTo(x, y);
-            ctx.stroke();
+            const tool = brushType.value;
 
-            [lastX, lastY] = [x, y];
-        }
+            if (['rect', 'circle', 'line'].includes(tool)) {
+                // إعادة رسم الخلفية السابقة للمنع من تلطيخ الشاشة أثناء السحب
+                ctx.putImageData(this.tempSnapshot, 0, 0);
+                applyBrushSettings();
+                ctx.beginPath();
 
-        canvas.addEventListener('mousedown', (e) => {
-            isDrawing = true;
-            const rect = canvas.getBoundingClientRect();
-            lastX = e.clientX - rect.left;
-            lastY = e.clientY - rect.top;
+                if (tool === 'rect') {
+                    ctx.rect(startX, startY, x - startX, y - startY);
+                } else if (tool === 'circle') {
+                    let radius = Math.sqrt(Math.pow(x - startX, 2) + Math.pow(y - startY, 2));
+                    ctx.arc(startX, startY, radius, 0, 2 * Math.PI);
+                } else if (tool === 'line') {
+                    ctx.moveTo(startX, startY);
+                    ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+            } else {
+                // رسم عادي بالفرشاة
+                applyBrushSettings();
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+                [lastX, lastY] = [x, y];
+            }
         });
 
-        canvas.addEventListener('mousemove', draw);
         canvas.addEventListener('mouseup', () => {
-            isDrawing = false;
-            // حفظ التحديثات تلقائياً في الذاكرة المؤقتة للورقة النشطة
-            pages[currentPageName] = canvas.toDataURL();
-        });
-        canvas.addEventListener('mouseout', () => isDrawing = false);
-
-        // مسح الكانفاس الحالي
-        clearBtn.addEventListener('click', () => {
-            if (confirm("هل تريد مسح اللوحة الحالية والبدء من جديد؟")) {
-                clearCanvasToWhite();
+            if (isDrawing) {
+                isDrawing = false;
+                saveState(); // حفظ تعديلات اللوحة بعد رفع اليد
                 pages[currentPageName] = canvas.toDataURL();
             }
         });
 
-        // حفظ وتحميل الصورة
+        canvas.addEventListener('mouseout', () => isDrawing = false);
+
+        // مسح اللوحة الحالية والعودة للأبيض
+        clearBtn.addEventListener('click', () => {
+            if (confirm("هل تريد مسح لوحة الرسم بالكامل؟")) {
+                clearCanvasToWhite();
+                saveState();
+                pages[currentPageName] = canvas.toDataURL();
+            }
+        });
+
+        // حفظ الصورة على الحاسوب
         downloadBtn.addEventListener('click', () => {
             const link = document.createElement('a');
             link.download = `${currentPageName}.png`;
@@ -548,14 +593,87 @@
             link.click();
         });
 
-        // تحديث نصوص مؤشرات الأرقام (الشفافية والحجم)
+        // إدارة الأوراق واللوحات المتعددة
+        function renderPagesList() {
+            pagesList.innerHTML = '';
+            Object.keys(pages).forEach(name => {
+                const li = document.createElement('li');
+                li.className = `page-item ${name === currentPageName ? 'active' : ''}`;
+                li.innerHTML = `
+                    <span class="page-title">📄 ${name}</span>
+                    ${name !== "اللوحة الرئيسية" ? `<button class="delete-page-btn" onclick="deletePage(event, '${name}')">🗑️</button>` : ''}
+                `;
+                li.addEventListener('click', () => switchPage(name));
+                pagesList.appendChild(li);
+            });
+        }
+
+        function switchPage(name) {
+            if (name === currentPageName) return;
+
+            // حفظ حالة الرسم السابقة قبل الانتقال
+            pages[currentPageName] = canvas.toDataURL();
+
+            container.style.transform = 'scale(0.95) rotateY(15deg)';
+            container.style.opacity = '0.5';
+
+            setTimeout(() => {
+                currentPageName = name;
+                const img = new Image();
+                img.onload = function() {
+                    clearCanvasToWhite();
+                    ctx.drawImage(img, 0, 0);
+                    
+                    // إعادة تهيئة تاريخ التراجع/التقدم للصفحة الجديدة
+                    undoStack = [canvas.toDataURL()];
+                    redoStack = [];
+                };
+                img.src = pages[name] || canvas.toDataURL();
+                renderPagesList();
+
+                container.style.transform = 'scale(1) rotateY(0)';
+                container.style.opacity = '1';
+            }, 250);
+        }
+
+        addPageBtn.addEventListener('click', () => {
+            const name = newPageNameInput.value.trim();
+            if (!name) return alert("يرجى إدخال اسم اللوحة أولاً!");
+            if (pages[name]) return alert("هذا الاسم قيد الاستخدام بالفعل!");
+
+            pages[currentPageName] = canvas.toDataURL(); // حفظ اللوحة النشطة حالياً
+            
+            currentPageName = name;
+            clearCanvasToWhite();
+            pages[name] = canvas.toDataURL();
+
+            undoStack = [canvas.toDataURL()];
+            redoStack = [];
+
+            newPageNameInput.value = '';
+            renderPagesList();
+        });
+
+        window.deletePage = function(event, name) {
+            event.stopPropagation();
+            if (confirm(`هل أنت متأكد من رغبتك بحذف اللوحة: ${name}؟`)) {
+                delete pages[name];
+                if (currentPageName === name) {
+                    switchPage("اللوحة الرئيسية");
+                } else {
+                    renderPagesList();
+                }
+            }
+        };
+
+        // إدارة واجهة المستخدم وعدادات الفرشاة الفعالة
         opacityRange.addEventListener('input', () => {
             opacityVal.textContent = `${opacityRange.value}%`;
         });
 
         shadowRange.addEventListener('input', () => {
             const val = shadowRange.value;
-            shadowVal.textContent = val == 0 ? 'بدون تظليل' : `${val}px`;
+            shadowVal.textContent = val == 0 ? 'بدون تظليل' : `${val}px تظليل`;
         });
 
         lineWidthRange.addEventListener('input', () => {
@@ -564,8 +682,9 @@
         });
 
         colorPicker.addEventListener('input', updateBrushPreview);
+        brushType.addEventListener('change', updateBrushPreview);
 
-        // تحديث شكل مؤشر الماوس التفاعلي على لوحة الرسم
+        // تعديل حجم مؤشر الفأرة العائم مع الحركة
         function updateBrushPreview() {
             const size = lineWidthRange.value;
             brushPreview.style.width = `${size}px`;
@@ -580,9 +699,6 @@
             brushPreview.style.top = `${e.clientY}px`;
         });
 
-        brushType.addEventListener('change', updateBrushPreview);
-
-        // إنشاء القائمة الأولية عند تشغيل الموقع
         renderPagesList();
         updateBrushPreview();
     </script>
