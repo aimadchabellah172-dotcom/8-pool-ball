@@ -1,125 +1,614 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>موقعك الإلكتروني</title>
-    <!-- استيراد ملف CSS -->
-    <link rel="stylesheet" href="style.css">
-    <!-- استيراد ملف JS -->
-    <script src="script.js" defer></script>
+    <title>FileWizard - منصة الملفات الذكية</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700;900&family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* =========================================
+           1. المتغيرات والستايل العام والمريح للعين
+           ========================================= */
+        :root {
+            /* وضع الظلام (تلقائي) */
+            --bg-body: #0f172a;
+            --bg-card: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --accent-rgb: 59, 130, 246;
+            --border-color: rgba(255, 255, 255, 0.05);
+            --success: #10b981;
+            
+            /* الأنيميشن والتأثيرات */
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+        }
+
+        /* وضع النهار (عند التفعيل) */
+        [data-theme="light"] {
+            --bg-body: #f1f5f9;
+            --bg-card: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --accent: #4f46e5;
+            --accent-hover: #4338ca;
+            --accent-rgb: 79, 70, 229;
+            --border-color: rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Cairo', 'Poppins', sans-serif; /* ترتيب الخطوط حسب اللغة */
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 80px; /* مساحة للروبوت */
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* تنسيق الخطوط حسب اتجاه اللغة */
+        [dir="rtl"] { font-family: 'Cairo', sans-serif; }
+        [dir="ltr"] { font-family: 'Poppins', sans-serif; }
+
+        /* الأزرار العامة */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            border: none;
+            font-size: 1rem;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-2px);
+        }
+
+        /* الأيقونات الدائرية */
+        .btn-icon {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .btn-icon:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* =========================================
+           2. الهيدر وقائمة التحكم
+           ========================================= */
+        header {
+            background-color: rgba(var(--accent-rgb), 0.03);
+            backdrop-filter: blur(10px);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        header nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header .logo {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .controls-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        /* =========================================
+           3. أنيميشن الروبوت "بوبو" المتحرك
+           ========================================= */
+        #bobo-container {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            pointer-events: none;
+            transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* حركة طيران ناعمة */
+        }
+
+        /* فقاعة الكلام */
+        .bobo-bubble {
+            background: var(--bg-card);
+            color: var(--text-main);
+            border: 2px solid var(--accent);
+            padding: 15px 20px;
+            border-radius: 20px;
+            margin-bottom: 15px;
+            max-width: 280px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            pointer-events: auto;
+            position: relative;
+            animation: float 3s ease-in-out infinite;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .bobo-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            right: 30px;
+            border-width: 10px 10px 0;
+            border-style: solid;
+            border-color: var(--accent) transparent;
+            display: block;
+            width: 0;
+        }
+
+        /* الروبوت نفسه */
+        .bobo-avatar {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--accent), #a855f7);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 20px rgba(var(--accent-rgb), 0.4);
+            pointer-events: auto;
+            cursor: pointer;
+            animation: float 3s ease-in-out infinite alternate;
+            border: 3px solid #fff;
+            position: relative;
+        }
+
+        .bobo-avatar i {
+            font-size: 2.5rem;
+            color: white;
+        }
+
+        /* أنيميشن تحريك اليد (مؤشر) */
+        .bobo-pointer {
+            position: absolute;
+            font-size: 2rem;
+            color: #f59e0b; /* لون ذهبي لليد */
+            pointer-events: none;
+            display: none;
+            z-index: 999;
+            animation: point-bounce 0.6s infinite alternate;
+        }
+
+        /* أنيميشن الطفو والتحريك */
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(2deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+
+        @keyframes point-bounce {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-10px, -10px); }
+        }
+
+        /* =========================================
+           4. تنسيق قائمة التبويبات والأدوات
+           ========================================= */
+        .tabs-nav {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background-color: var(--bg-card);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 12px 24px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1rem;
+            transition: var(--transition-smooth);
+        }
+
+        .tab-btn:hover, .tab-btn.active {
+            background-color: var(--accent);
+            color: #fff;
+            box-shadow: 0 5px 15px rgba(var(--accent-rgb), 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* محتوى التبويبات */
+        .tab-content {
+            display: none;
+            max-width: 900px;
+            margin: 20px auto;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* تنسيق الكروت */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+        }
+
+        .card h2 {
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+        }
+
+        .card p {
+            color: var(--text-muted);
+            margin-bottom: 25px;
+            font-size: 1.05rem;
+        }
+
+        /* منطقة سحب وإفلت الملفات */
+        .dropzone {
+            border: 3px dashed var(--border-color);
+            border-radius: 20px;
+            padding: 50px 20px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            background: rgba(var(--accent-rgb), 0.01);
+            position: relative;
+        }
+
+        .dropzone:hover, .dropzone.dragover {
+            border-color: var(--accent);
+            background: rgba(var(--accent-rgb), 0.05);
+        }
+
+        .dropzone i {
+            font-size: 3.5rem;
+            color: var(--accent);
+            margin-bottom: 15px;
+        }
+
+        .dropzone input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        /* خيارات إضافية للتحويل */
+        .converter-options {
+            margin-top: 25px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            text-align: right;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        select {
+            background: var(--bg-body);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 12px;
+            border-radius: 10px;
+            outline: none;
+            font-size: 1rem;
+        }
+
+        /* الاستجابة للهواتف */
+        @media (max-width: 768px) {
+            header .logo { font-size: 1.5rem; }
+            .card h2 { font-size: 1.5rem; }
+            #bobo-container { bottom: 15px; right: 15px; }
+            .bobo-bubble { max-width: 200px; font-size: 0.85rem; }
+        }
+    </style>
 </head>
 <body>
 
     <header>
         <div class="container">
             <nav>
-                <a href="#" class="logo">موقعك</a>
-                <ul>
-                    <li><a href="#">الرئيسية</a></li>
-                    <li><a href="#about">عن الموقع</a></li>
-                    <li><a href="#tools">الأدوات</a></li>
-                    <li><a href="#contact">اتصل بنا</a></li>
-                </ul>
-                <button class="menu-toggle">
-                    <span class="bar"></span>
-                    <span class="bar"></span>
-                    <span class="bar"></span>
-                </button>
+                <div class="logo">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span>FileWizard</span>
+                </div>
+                <div class="controls-group">
+                    <button class="btn-icon" onclick="toggleTheme()" title="تغيير الوضع لراحة العين">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+                    <button class="btn-icon" onclick="toggleLanguage()" title="Switch Language">
+                        <i class="fa-solid fa-language"></i>
+                    </button>
+                </div>
             </nav>
         </div>
     </header>
 
-    <section id="hero">
-        <div class="container">
-            <div class="hero-content">
-                <h1>استكشف عالمك الرقمي</h1>
-                <p>مرحباً بك في موقعنا، حيث يمكنك الوصول إلى مجموعة متنوعة من الأدوات والمعلومات.</p>
-                <a href="#tools" class="btn btn-primary">ابدأ الآن</a>
-            </div>
-            <div class="hero-image">
-                <!-- يمكنك إضافة صورة أو أي شيء آخر هنا -->
-            </div>
-        </div>
-    </section>
+    <main class="container">
+        <nav class="tabs-nav">
+            <button class="tab-btn active" onclick="switchTab(0, 'pdf-section')" id="tab0">
+                <i class="fa-solid fa-file-pdf"></i> <span class="tab-text">صورة إلى PDF / OCR</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab(1, 'zip-section')" id="tab1">
+                <i class="fa-solid fa-file-zipper"></i> <span class="tab-text">ضغط وفك ZIP</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab(2, 'convert-section')" id="tab2">
+                <i class="fa-solid fa-rotate"></i> <span class="tab-text">تحويل الصيغ الشامل</span>
+            </button>
+        </nav>
 
-    <section id="tools">
-        <div class="container">
-            <h2>الأدوات</h2>
-            <div class="tools-grid">
-                <div class="tool-card">
-                    <i class="fas fa-search"></i>
-                    <h3>البحث</h3>
-                    <p>ابحث عن ما تريد.</p>
+        <section id="pdf-section" class="tab-content active">
+            <div class="card">
+                <h2 id="pdf-title"><i class="fa-solid fa-images text-accent"></i> تحويل الصور إلى PDF و OCR</h2>
+                <p id="pdf-desc">ارفع صورك العادية أو لقطات المستندات المكتوبة، وسأستخلص النصوص منها (OCR) وأسحرها لك في ملف PDF ذكي واحد.</p>
+                <div class="dropzone" id="pdf-dropzone">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <p class="dz-text">اسحب وأفلت صورك هنا، أو اضغط للتصفح</p>
+                    <input type="file" id="pdf-input" accept="image/*" multiple>
                 </div>
-                <div class="tool-card">
-                    <i class="fas fa-calculator"></i>
-                    <h3>الآلة الحاسبة</h3>
-                    <p>احسب الأرقام بسهولة.</p>
-                </div>
-                <div class="tool-card">
-                    <i class="fas fa-edit"></i>
-                    <h3>الملاحظات</h3>
-                    <p>اكتب ملاحظاتك.</p>
-                </div>
-                <!-- أدوات جديدة -->
-                <div class="tool-card">
-                    <i class="fas fa-link"></i>
-                    <h3>مختصر الروابط</h3>
-                    <p>احصل على روابط أقصر.</p>
-                </div>
-                <div class="tool-card">
-                    <i class="fas fa-qrcode"></i>
-                    <h3>مولد رمز الاستجابة السريعة</h3>
-                    <p>أنشئ رموز استجابة سريعة.</p>
-                </div>
-                <div class="tool-card">
-                    <i class="fas fa-clock"></i>
-                    <h3>الساعة</h3>
-                    <p>اطلع على الوقت.</p>
-                </div>
+                <button class="btn btn-primary" style="margin-top: 25px;"><i class="fa-solid fa-gears"></i> تحويل الآن</button>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section id="about">
-        <div class="container">
-            <div class="about-content">
-                <h2>عن الموقع</h2>
-                <p>موقعنا هو منصة شاملة توفر مجموعة من الأدوات والمعلومات التي تحتاجها في حياتك اليومية. نحن نسعى جاهدين لتقديم أفضل تجربة مستخدم ممكنة، ونعمل باستمرار على تحسين وتطوير موقعنا.</p>
+        <section id="zip-section" class="tab-content">
+            <div class="card">
+                <h2 id="zip-title"><i class="fa-solid fa-file-zipper"></i> ضغط وفك ضغط الملفات</h2>
+                <p id="zip-desc">هل ملفاتك ثقيلة؟ دعني أضغطها لك في ملف ZIP صغير! أو إذا كان لديك ملف مضغوط، سأفكه لك بلمح البصر.</p>
+                
+                <div class="converter-options" style="grid-template-columns: 1fr; margin-bottom: 20px; text-align: center;">
+                    <div class="form-group" style="align-items: center;">
+                        <label id="lbl-zip-action">العملية المطلوبة:</label>
+                        <select id="zip-action">
+                            <option value="compress">ضغط الملفات إلى ZIP</option>
+                            <option value="decompress">فك ضغط ملف ZIP</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="dropzone" id="zip-dropzone">
+                    <i class="fa-solid fa-file-archive"></i>
+                    <p class="dz-text">اسحب الملفات هنا لمعالجتها</p>
+                    <input type="file" id="zip-input" multiple>
+                </div>
+                <button class="btn btn-primary" style="margin-top: 25px;"><i class="fa-solid fa-bolt"></i> تنفيذ العملية</button>
             </div>
-            <div class="about-image">
-                <!-- يمكنك إضافة صورة أو أي شيء آخر هنا -->
+        </section>
+
+        <section id="convert-section" class="tab-content">
+            <div class="card">
+                <h2 id="conv-title"><i class="fa-solid fa-repeat"></i> محول الصيغ السحري ورقع الجودة</h2>
+                <p id="conv-desc">ارفع مستندات Word, Excel، أو أي صورة، وسأقوم بتحويلها للصيغة التي تحبها، أو ترقية دقتها لتكون فائقة الوضوح.</p>
+                <div class="dropzone" id="conv-dropzone">
+                    <i class="fa-solid fa-file-invoice"></i>
+                    <p class="dz-text">قم برفع الملف المراد تحويله (Excel, Word, Image, PDF)</p>
+                    <input type="file" id="conv-input">
+                </div>
+                
+                <div class="converter-options">
+                    <div class="form-group">
+                        <label id="lbl-target-format">الصيغة المستهدفة:</label>
+                        <select id="target-format">
+                            <option value="xlsx">Excel Workbook (.xlsx)</option>
+                            <option value="docx">Word Document (.docx)</option>
+                            <option value="pdf">PDF Document (.pdf)</option>
+                            <option value="png">PNG Image (.png)</option>
+                            <option value="jpg">JPEG High Quality (.jpg)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label id="lbl-quality">الجودة والوضوح:</label>
+                        <select id="conv-quality">
+                            <option value="high">جودة عالية + رفع الدقة</option>
+                            <option value="medium">متوازن (Balanced)</option>
+                            <option value="low">حجم صغير (Compressed)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" style="margin-top: 25px;"><i class="fa-solid fa-wand-magic-sparkles"></i> تحويل وتعديل الملف</button>
             </div>
-        </div>
-    </section>
+        </section>
+    </main>
 
-    <section id="contact">
-        <div class="container">
-            <h2>اتصل بنا</h2>
-            <form action="#">
-                <div class="form-group">
-                    <label for="name">الاسم</label>
-                    <input type="text" id="name" name="name" required>
-                </div>
-                <div class="form-group">
-                    <label for="email">البريد الإلكتروني</label>
-                    <input type="email" id="email" name="email" required>
-                </div>
-                <div class="form-group">
-                    <label for="message">الرسالة</label>
-                    <textarea id="message" name="message" required></textarea>
-                </div>
-                <button type="submit" class="btn btn-primary">إرسال</button>
-            </form>
+    <div id="bobo-container">
+        <div class="bobo-bubble" id="bobo-talk">أهلاً بك! أنا بوبو رفيقك الذكي. اضغط على أي أداة لأطير إليها وأشرحها لك فوراً بأسلوب مريح!</div>
+        <div class="bobo-avatar">
+            <i class="fa-solid fa-robot"></i>
         </div>
-    </section>
+    </div>
+    <div class="bobo-pointer" id="bobo-pointer"><i class="fa-solid fa-hand-point-up"></i></div>
 
-    <footer>
-        <div class="container">
-            <p>&copy; 2026 موقعك. جميع الحقوق محفوظة.</p>
-        </div>
-    </footer>
+    <script>
+        // لغات الموقع
+        const i18n = {
+            ar: {
+                welcome: "مرحباً! أنا بوبو رفيقك الذكي. اضغط على أي أداة لأطير إليها وأشرحها لك فوراً بأسلوب مريح!",
+                tab0Desc: "يا صديقي، هنا يمكنك إعطائي أي صورة، أو لقطة بكاميرتك لورقة مكتوبة، وسأستخلص منها النصوص (OCR) وأسحرها لك في ملف PDF احترافي مذهل!",
+                tab1Desc: "هل ملفاتك ثقيلة؟ دعني أضغطها لك في كبسولة ZIP صغيرة لتوفر مساحتك! أو إذا كان لديك ملف مضغوط، سأفكه لك بلمح البصر ⚡!",
+                tab2Desc: "هذه ورشتي المفضلة! ارفع لي أي ملف (إكسيل، وورد، صورة، أو مستند) وسأقوم بإعادة صياغته وترقية جودته وتحويله إلى الصيغة التي تعشقها!",
+                dzText: "اسحب وأفلت صورك هنا، أو اضغط للتصفح"
+            },
+            en: {
+                welcome: "Welcome! I'm Bobo, your smart buddy. Click any tool, and I will fly and explain it to you in a cool way!",
+                tab0Desc: "Upload any image or document snapshot. I will extract the text (OCR) and cast a spell to generate a high-quality PDF file!",
+                tab1Desc: "Heavy files? Let me compress them into a tiny ZIP capsule! Or feed me a ZIP, and I will unpack it in a blink of an eye ⚡!",
+                tab2Desc: "My favorite workshop! Upload Excel, Word, or Image files and convert them to any format with enhanced quality and sharpness!",
+                dzText: "Drag & drop your files here, or click to browse"
+            }
+        };
 
+        let currentLang = 'ar';
+
+        // تحريك التبويبات وتفعيل حركة الروبوت
+        function switchTab(index, sectionId) {
+            // تفعيل التبويب برمجياً
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            document.getElementById('tab' + index).classList.add('active');
+            document.getElementById(sectionId).classList.add('active');
+
+            // تحريك الروبوت بوبو ومؤشره
+            moveBoboTo(index);
+        }
+
+        // حركة بوبو الطائر ليحوم بجانب الأداة النشطة
+        function moveBoboTo(tabIndex) {
+            const tabBtn = document.getElementById('tab' + tabIndex);
+            const rect = tabBtn.getBoundingClientRect();
+            const boboContainer = document.getElementById('bobo-container');
+            const pointer = document.getElementById('bobo-pointer');
+            const talk = document.getElementById('bobo-talk');
+
+            // نقل الروبوت ليحوم بجانب التبويب المختار
+            boboContainer.style.position = 'absolute';
+            boboContainer.style.top = (window.scrollY + rect.top + 80) + 'px';
+            boboContainer.style.left = (rect.left + rect.width / 2 - 40) + 'px';
+
+            // إظهار المؤشر وهو يشير للتبويب
+            pointer.style.display = 'block';
+            pointer.style.top = (window.scrollY + rect.top - 40) + 'px';
+            pointer.style.left = (rect.left + rect.width / 2 - 15) + 'px';
+
+            // تكييف نصوص بوبو
+            if (tabIndex === 0) {
+                talk.innerText = i18n[currentLang].tab0Desc;
+            } else if (tabIndex === 1) {
+                talk.innerText = i18n[currentLang].tab1Desc;
+            } else if (tabIndex === 2) {
+                talk.innerText = i18n[currentLang].tab2Desc;
+            }
+
+            // إخفاء اليد تلقائياً بعد فترة
+            setTimeout(() => {
+                pointer.style.display = 'none';
+                // إعادة بوبو لوضعيته العائمة الثابتة بالأسفل بشكل مريح بعد الشرح
+                setTimeout(() => {
+                    boboContainer.style.position = 'fixed';
+                    boboContainer.style.top = 'auto';
+                    boboContainer.style.bottom = '30px';
+                    boboContainer.style.left = 'auto';
+                    boboContainer.style.right = '30px';
+                }, 4000);
+            }, 3000);
+        }
+
+        // تبديل لغات واجهة المستخدم
+        function toggleLanguage() {
+            currentLang = currentLang === 'ar' ? 'en' : 'ar';
+            const doc = document.documentElement;
+            doc.setAttribute('lang', currentLang);
+            doc.setAttribute('dir', currentLang === 'ar' ? 'rtl' : 'ltr');
+
+            // ترجمة الأزرار والتبويبات
+            if(currentLang === 'ar') {
+                document.getElementById('tab0').innerHTML = `<i class="fa-solid fa-file-pdf"></i> <span class="tab-text">صورة إلى PDF / OCR</span>`;
+                document.getElementById('tab1').innerHTML = `<i class="fa-solid fa-file-zipper"></i> <span class="tab-text">ضغط وفك ZIP</span>`;
+                document.getElementById('tab2').innerHTML = `<i class="fa-solid fa-rotate"></i> <span class="tab-text">تحويل الصيغ الشامل</span>`;
+                
+                document.getElementById('pdf-title').innerHTML = `<i class="fa-solid fa-images text-accent"></i> تحويل الصور إلى PDF و OCR`;
+                document.getElementById('zip-title').innerHTML = `<i class="fa-solid fa-file-zipper"></i> ضغط وفك ضغط الملفات`;
+                document.getElementById('conv-title').innerHTML = `<i class="fa-solid fa-repeat"></i> محول الصيغ السحري ورقع الجودة`;
+            } else {
+                document.getElementById('tab0').innerHTML = `<i class="fa-solid fa-file-pdf"></i> <span class="tab-text">Image to PDF / OCR</span>`;
+                document.getElementById('tab1').innerHTML = `<i class="fa-solid fa-file-zipper"></i> <span class="tab-text">ZIP Compress & Extract</span>`;
+                document.getElementById('tab2').innerHTML = `<i class="fa-solid fa-rotate"></i> <span class="tab-text">Format Converter</span>`;
+                
+                document.getElementById('pdf-title').innerHTML = `<i class="fa-solid fa-images text-accent"></i> Convert Images to PDF & OCR`;
+                document.getElementById('zip-title').innerHTML = `<i class="fa-solid fa-file-zipper"></i> Compress & Extract ZIP`;
+                document.getElementById('conv-title').innerHTML = `<i class="fa-solid fa-repeat"></i> Magical Converter & Upscale`;
+            }
+
+            document.querySelectorAll('.dz-text').forEach(el => el.innerText = i18n[currentLang].dzText);
+        }
+
+        // تبديل الثيم (ليلي/نهاري) لراحة العين
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            
+            const icon = document.querySelector('button[onclick="toggleTheme()"] i');
+            icon.className = newTheme === 'dark' ? "fa-solid fa-moon" : "fa-solid fa-sun";
+        }
+    </script>
 </body>
 </html>
