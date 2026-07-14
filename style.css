@@ -1,0 +1,401 @@
+/* =========================================
+   1. المتغيرات الأساسية وأنماط الرست
+   ========================================= */
+:root {
+    /* لوحة الألوان (داكنة وعصرية) */
+    --bg-body: #0f172a; /* كحلي غامق جداً للخلفية */
+    --bg-card: #1e293b; /* كحلي أفتح قليلاً للكروت والقوائم */
+    --text-main: #f1f5f9; /* أبيض مائل للرمادي للنصوص الأساسية */
+    --text-muted: #94a3b8; /* رمادي للنصوص الثانوية */
+    --accent: #3b82f6; /* أزرق زاهي للأزرار والعناصر النشطة */
+    --accent-hover: #2563eb; /* أزرق أغمق عند التمرير */
+    --border-color: rgba(255, 255, 255, 0.05); /* حدود شفافة جداً */
+    
+    /* التأثيرات والأنيميشن */
+    --transition-fast: all 0.2s ease;
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+    --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+}
+
+/* تنسيق عام لإعادة الضبط (Reset) */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    outline: none; /* إزالة حدود التركيز الافتراضية المزعجة */
+}
+
+html {
+    /* خطوط عربية وإنجليزية نظيفة واحترافية */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, 'Cairo'; 
+    scroll-behavior: smooth; /* تمرير ناعم بين الأقسام */
+    font-size: 16px;
+    color: var(--text-main);
+    background-color: var(--bg-body);
+}
+
+body {
+    line-height: 1.6;
+    overflow-x: hidden; /* منع التمرير الأفقي */
+}
+
+/* الحاوية الرئيسية لتوسط المحتوى */
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* الأنماط العامة للروابط والقوائم */
+a {
+    text-decoration: none;
+    color: inherit;
+    transition: var(--transition-fast);
+}
+
+ul {
+    list-style: none;
+}
+
+/* العناوين والفقرات */
+h1, h2, h3 {
+    font-weight: 700;
+    margin-bottom: 1rem;
+    letter-spacing: -0.5px;
+}
+
+p {
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+}
+
+/*الأزرار */
+.btn {
+    display: inline-block;
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    border: none;
+    font-size: 1rem;
+}
+
+.btn-primary {
+    background-color: var(--accent);
+    color: white;
+    box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);
+}
+
+.btn-primary:hover {
+    background-color: var(--accent-hover);
+    transform: translateY(-2px); /* تحريك طفيف للأعلى عند التمرير */
+    box-shadow: 0 7px 14px rgba(59, 130, 246, 0.3);
+}
+
+/* =========================================
+   2. الهيدر وقائمة التنقل (Header & Nav)
+   ========================================= */
+header {
+    background-color: rgba(15, 23, 42, 0.9); /* خلفية شبه شفافة */
+    backdrop-filter: blur(10px); /* تأثير ضبابي عصري */
+    padding: 15px 0;
+    position: fixed; /* تثبيت الهيدر في الأعلى */
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+    border-bottom: 1px solid var(--border-color);
+}
+
+header nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header .logo {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: -1px;
+}
+
+header ul {
+    display: flex;
+    gap: 30px;
+}
+
+header ul li a {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-main);
+}
+
+header ul li a:hover,
+header ul li a.active {
+    color: var(--accent);
+}
+
+/* زر القائمة للهواتف (مخفي افتراضياً) */
+.menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.menu-toggle .bar {
+    display: block;
+    width: 25px;
+    height: 3px;
+    margin: 5px auto;
+    background-color: var(--text-main);
+    transition: var(--transition-smooth);
+}
+
+/* =========================================
+   3. قسم الهيرو (Hero Section)
+   ========================================= */
+#hero {
+    padding: 150px 0 100px; /* مساحة علوية لإفساح المجال للهيدر المثبت */
+    text-align: center;
+    background: radial-gradient(circle at center, rgba(59, 130, 246, 0.1) 0%, rgba(15, 23, 42, 0) 70%);
+}
+
+#hero h1 {
+    font-size: 3.5rem;
+    line-height: 1.2;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(180deg, #fff 0%, #a5b4fc 100%); /* تدرج لوني للنص */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+#hero p {
+    font-size: 1.25rem;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 2.5rem;
+}
+
+/* =========================================
+   4. قسم الأدوات (Tools Section)
+   ========================================= */
+#tools {
+    padding: 100px 0;
+    background-color: var(--bg-card);
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+#tools h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 3rem;
+}
+
+.tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* شبكة مرنة واستجابة */
+    gap: 30px;
+}
+
+.tool-card {
+    background-color: var(--bg-body);
+    padding: 40px;
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    transition: var(--transition-smooth);
+    position: relative;
+    overflow: hidden;
+}
+
+.tool-card:hover {
+    transform: translateY(-10px);
+    border-color: rgba(59, 130, 246, 0.3);
+    box-shadow: var(--shadow-lg);
+}
+
+/* تأثير لمعان عند التمرير */
+.tool-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+    transition: 0.5s;
+}
+
+.tool-card:hover::after {
+    left: 100%;
+}
+
+.tool-card i {
+    font-size: 2.5rem;
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+    display: inline-block;
+}
+
+.tool-card h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-main);
+}
+
+.tool-card p {
+    font-size: 1rem;
+    margin-bottom: 0;
+}
+
+/* =========================================
+   5. قسم عن الموقع (About Section)
+   ========================================= */
+#about {
+    padding: 100px 0;
+}
+
+#about .container {
+    display: flex;
+    align-items: center;
+    gap: 50px;
+}
+
+.about-content {
+    flex: 1;
+}
+
+#about h2 {
+    font-size: 2.5rem;
+}
+
+.about-image {
+    flex: 1;
+    height: 300px;
+    background-color: var(--bg-card);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    /* يمكنك وضع صورة خلفية هنا */
+}
+
+/* =========================================
+   6. قسم اتصل بنا (Contact Section)
+   ========================================= */
+#contact {
+    padding: 100px 0;
+    background-color: var(--bg-card);
+    border-top: 1px solid var(--border-color);
+}
+
+#contact h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 3rem;
+}
+
+#contact form {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-main);
+    font-size: 0.9rem;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 15px;
+    background-color: var(--bg-body);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-main);
+    font-family: inherit;
+    font-size: 1rem;
+    transition: var(--transition-fast);
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-group textarea {
+    height: 150px;
+    resize: vertical; /* السماح بتغيير الحجم عمودياً فقط */
+}
+
+#contact .btn {
+    width: 100%;
+}
+
+/* =========================================
+   7. الفوتر (Footer)
+   ========================================= */
+footer {
+    padding: 30px 0;
+    text-align: center;
+    border-top: 1px solid var(--border-color);
+}
+
+footer p {
+    margin-bottom: 0;
+    font-size: 0.9rem;
+}
+
+/* =========================================
+   8. الاستجابة لشاشات الهواتف (Media Queries)
+   ========================================= */
+@media (max-width: 992px) {
+    #hero h1 { font-size: 2.8rem; }
+    #about .container { flex-direction: column; text-align: center; }
+}
+
+@media (max-width: 768px) {
+    html { font-size: 15px; } /* تصغير الخط قليلاً للهواتف */
+    
+    #hero { padding: 120px 0 80px; }
+    #hero h1 { font-size: 2.2rem; }
+    
+    /* إظهار زر القائمة وإخفاء القائمة الأصلية */
+    .menu-toggle { display: block; }
+    
+    header ul {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background-color: var(--bg-card);
+        flex-direction: column;
+        gap: 0;
+        padding: 20px 0;
+        border-top: 1px solid var(--border-color);
+        box-shadow: var(--shadow-lg);
+        display: none; /* مخفية، سيتم إظهارها بجافا سكريبت */
+    }
+    
+    header ul.show {
+        display: flex;
+    }
+    
+    header ul li a {
+        padding: 15px 20px;
+        display: block;
+        border-bottom: 1px solid var(--border-color);
+    }
+    header ul li:last-child a { border-bottom: none; }
+}
