@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>محمل الوسائط الذكي | تحميل من يوتيوب بجودة عالية</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
+    <title>تحميل فيديوهات يوتيوب باختيار الجودة الفائقة</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --accent-primary: #8b5cf6;
-            --accent-hover: #7c3aed;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --border-color: rgba(255, 255, 255, 0.08);
+            --bg-main: #0b0c10;
+            --card-bg: rgba(21, 23, 30, 0.8);
+            --accent-color: #00f2fe;
+            --accent-gradient: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            --text-main: #f5f6fa;
+            --text-secondary: #9aa0a6;
+            --border-color: rgba(255, 255, 255, 0.05);
         }
 
         * {
@@ -24,7 +24,10 @@
         }
 
         body {
-            background: var(--bg-gradient);
+            background-color: var(--bg-main);
+            background-image: 
+                radial-gradient(at 10% 20%, rgba(0, 242, 254, 0.05) 0px, transparent 50%),
+                radial-gradient(at 90% 80%, rgba(79, 70, 229, 0.05) 0px, transparent 50%);
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
@@ -33,199 +36,189 @@
             padding: 20px;
         }
 
-        /* حاوية الموقع الرئيسية */
-        .container {
+        .main-card {
             width: 100%;
-            max-width: 650px;
+            max-width: 700px;
             background: var(--card-bg);
-            backdrop-filter: blur(16px);
+            backdrop-filter: blur(12px);
             border: 1px solid var(--border-color);
             border-radius: 24px;
             padding: 40px 30px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
             text-align: center;
         }
 
-        .header h1 {
-            font-size: 2rem;
-            font-weight: 800;
+        .logo-area h1 {
+            font-size: 2.2rem;
+            font-weight: 900;
+            letter-spacing: -0.5px;
             margin-bottom: 8px;
-            background: linear-gradient(to left, #a78bfa, #a855f7);
+            background: var(--accent-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        .header p {
-            color: var(--text-muted);
+        .logo-area p {
+            color: var(--text-secondary);
             font-size: 0.95rem;
             margin-bottom: 35px;
         }
 
-        /* نموذج إدخال الرابط */
-        .input-group {
-            position: relative;
+        /* حقل إدخال الرابط */
+        .search-box {
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            margin-bottom: 25px;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            width: 100%;
         }
 
         input[type="text"] {
             width: 100%;
-            background: rgba(15, 23, 42, 0.6);
+            background: #161922;
             border: 2px solid var(--border-color);
-            padding: 16px 20px;
-            border-radius: 14px;
+            padding: 18px 24px;
+            border-radius: 16px;
             color: white;
             font-size: 1rem;
             outline: none;
-            transition: all 0.3s;
-            text-align: left; /* لأن روابط يوتيوب بالإنجليزية */
+            transition: all 0.3s ease;
+            text-align: left;
         }
 
         input[type="text"]:focus {
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 15px rgba(139, 92, 246, 0.2);
+            border-color: #4facfe;
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.15);
         }
 
-        /* أزرار الخيارات */
-        .btn-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
-        .btn {
-            padding: 14px 20px;
+        .fetch-btn {
+            width: 100%;
+            background: var(--accent-gradient);
+            color: #0b0c10;
             border: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
+            padding: 16px;
+            border-radius: 16px;
+            font-size: 1.05rem;
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            color: white;
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.2);
         }
 
-        .btn-mp3 {
-            background: linear-gradient(135deg, #ec4899 0%, #d946ef 100%);
-        }
-        .btn-mp3:hover {
+        .fetch-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(217, 70, 239, 0.3);
+            box-shadow: 0 8px 25px rgba(0, 242, 254, 0.35);
         }
 
-        .btn-mp4 {
-            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
-        }
-        .btn-mp4:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(139, 92, 246, 0.3);
-        }
-
-        /* شاشة التحميل الاستباقية */
-        .loading-status {
+        /* صندوق استعراض الجودات المتاحة */
+        .downloader-panel {
             margin-top: 20px;
-            font-size: 0.9rem;
-            color: #fbbf24;
-            display: none;
+            border-top: 1px solid var(--border-color);
+            padding-top: 30px;
+            display: none; /* يظهر فقط عند جلب الرابط */
         }
 
-        /* إطار عرض النتيجة المخفي */
-        .result-box {
-            margin-top: 30px;
-            border-top: 1px solid var(--border-color);
-            padding-top: 25px;
-            display: none;
+        .panel-title {
+            font-size: 0.95rem;
+            color: #00f2fe;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        /* نافذة معالجة الجودات */
+        .iframe-container {
+            width: 100%;
+            height: 380px;
+            background: #161922;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
         }
 
         iframe {
             width: 100%;
-            height: 60px;
+            height: 100%;
             border: none;
-            border-radius: 12px;
-            background: transparent;
         }
 
-        .footer-note {
+        .info-footer {
             margin-top: 30px;
             font-size: 0.8rem;
-            color: var(--text-muted);
+            color: var(--text-secondary);
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="header">
-            <h1>محمل الوسائط الفائق</h1>
-            <p>ضع رابط فيديو يوتيوب أو الأغنية بالأسفل وحملها فوراً بأعلى جودة</p>
+    <div class="main-card">
+        <div class="logo-area">
+            <h1>مُحمّل يوتيوب الخارق</h1>
+            <p>اختر الجودة المفضلة لديك (MP4 لـ 1080p أو MP3 للصوت) وحمل مباشرة</p>
         </div>
 
-        <div class="input-group">
-            <input type="text" id="videoUrl" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off">
-            
-            <div class="btn-container">
-                <button class="btn btn-mp3" onclick="startDownload('mp3')">🎵 تحميل كـ MP3 (صوت)</button>
-                <button class="btn btn-mp4" onclick="startDownload('mp4')">🎬 تحميل كـ MP4 (فيديو)</button>
+        <div class="search-box">
+            <div class="input-wrapper">
+                <input type="text" id="youtubeUrl" placeholder="أدخل أو الصق رابط فيديو يوتيوب هنا..." autocomplete="off">
+            </div>
+            <button class="fetch-btn" onclick="fetchVideoQualities()">⚡ جلب خيارات الجودة المتاحة</button>
+        </div>
+
+        <div class="downloader-panel" id="downloaderPanel">
+            <div class="panel-title">👇 اختر الجودة ونوع الملف للتحميل المباشر:</div>
+            <div class="iframe-container">
+                <iframe id="conversionEngine" src=""></iframe>
             </div>
         </div>
 
-        <div class="loading-status" id="loadingStatus">⏳ جاري معالجة الرابط وتحضير خوادم التحميل... يرجى الانتظار ثواني.</div>
-
-        <div class="result-box" id="resultBox">
-            <iframe id="downloadFrame" src=""></iframe>
-        </div>
-
-        <div class="footer-note">
-            * ملاحظة: عند الضغط على التحميل، سيقوم النظام بفتح نافذة التحميل المباشرة التابعة للخادم الآمن.
+        <div class="info-footer">
+            * هذا الموقع مدمج مع محرك معالجة سحابي فوري لمنحك أعلى دقة تحميل متوفرة للفيديو.
         </div>
     </div>
 
     <script>
-        function startDownload(type) {
-            const urlInput = document.getElementById('videoUrl').value.trim();
-            const loadingStatus = document.getElementById('loadingStatus');
-            const resultBox = document.getElementById('resultBox');
-            const downloadFrame = document.getElementById('downloadFrame');
+        function fetchVideoQualities() {
+            const urlInput = document.getElementById('youtubeUrl').value.trim();
+            const downloaderPanel = document.getElementById('downloaderPanel');
+            const conversionEngine = document.getElementById('conversionEngine');
 
-            // التحقق من صحة الرابط المدخل
             if (!urlInput) {
-                alert('الرجاء إدخال رابط فيديو يوتيوب أولاً!');
+                alert('الرجاء وضع رابط فيديو يوتيوب أولاً!');
                 return;
             }
 
-            if (!urlInput.includes('youtube.com') && !urlInput.includes('youtu.be')) {
-                alert('الرجاء التأكد من أن الرابط يتبع لموقع يوتيوب!');
-                return;
-            }
-
-            // إظهار نص التحميل للمستخدم
-            loadingStatus.style.display = 'block';
-            resultBox.style.display = 'block';
-
-            // استخراج معرف الفيديو (Video ID) من الرابط لتمكين الـ API من قراءته
+            // استخراج الـ ID الخاص بالفيديو لدعم محرك الجودات الاختيارية
             let videoId = "";
-            if (urlInput.includes('v=')) {
-                videoId = urlInput.split('v=')[1].split('&')[0];
-            } else if (urlInput.includes('youtu.be/')) {
-                videoId = urlInput.split('youtu.be/')[1].split('?')[0];
+            try {
+                if (urlInput.includes('v=')) {
+                    videoId = urlInput.split('v=')[1].split('&')[0];
+                } else if (urlInput.includes('youtu.be/')) {
+                    videoId = urlInput.split('youtu.be/')[1].split('?')[0];
+                } else if (urlInput.includes('embed/')) {
+                    videoId = urlInput.split('embed/')[1].split('?')[0];
+                }
+            } catch (err) {
+                alert('فشل استخراج معرف الفيديو، يرجى التحقق من صحة الرابط.');
+                return;
             }
 
-            // استخدام بوابة تحويل وخدمة API عالمية ومجانية آمنة (Y2Mate API Gate)
-            // تقوم الخدمة بمعالجة الجودة تلقائياً (320kbps للصوت و 1080p/720p للفيديو)
-            const apiBaseUrl = `https://twoshot-api-gate.vercel.app/api/widget/${type}/${videoId}`;
-            
-            // تحديث الإطار الداخلي بالرابط الجديد لبدء المعالجة والتحميل الفوري
-            downloadFrame.src = apiBaseUrl;
+            if (!videoId) {
+                alert('رابط يوتيوب غير مدعوم أو غير صحيح، يرجى تجربة رابط آخر.');
+                return;
+            }
 
-            // إخفاء رسالة الانتظار بعد فترة وجيزة بمجرد استجابة الخادم
-            setTimeout(() => {
-                loadingStatus.style.display = 'none';
-            }, 4000);
+            // إظهار لوحة التحميل
+            downloaderPanel.style.display = 'block';
+
+            // ربط الواجهة بمحرك الـ API الاحترافي الخارجي الذي يقوم بفحص خوادم يوتيوب
+            // وتوليد جدول كامل يحتوي على جودات اختيارية (1080p, 720p, 480p, 320p, MP3)
+            const gatewayUrl = `https://twoshot-api-gate.vercel.app/api/widget/button/${videoId}`;
+            
+            // شحن المحرك بالرابط لبدء إظهار أزرار الجودات
+            conversionEngine.src = gatewayUrl;
         }
     </script>
 </body>
