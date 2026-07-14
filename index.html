@@ -1,916 +1,125 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl" data-theme="dark">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>بوبو - مساعد الملفات التفاعلي والذكي</title>
-    <!-- FontAwesome الأيقونات المتنوعة -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- خطوط جوجل المريحة للعين -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;800;900&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
-    
-    <style>
-        /* --- متغيرات التصميم والوضع المظلم المريح --- */
-        :root {
-            --bg-primary: #0b0f19;
-            --bg-secondary: rgba(20, 27, 45, 0.7);
-            --text-primary: #f1f5f9;
-            --text-secondary: #94a3b8;
-            --accent: #3b82f6;
-            --accent-glow: rgba(59, 130, 246, 0.5);
-            --success: #10b981;
-            --danger: #ef4444;
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --bobo-color: #3b82f6;
-        }
-
-        [data-theme="light"] {
-            --bg-primary: #f0f4f8;
-            --bg-secondary: rgba(255, 255, 255, 0.8);
-            --text-primary: #0f172a;
-            --text-secondary: #475569;
-            --accent: #4f46e5;
-            --accent-glow: rgba(79, 70, 229, 0.4);
-            --success: #059669;
-            --danger: #dc2626;
-            --glass-border: rgba(0, 0, 0, 0.08);
-            --bobo-color: #4f46e5;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Cairo', 'Outfit', sans-serif;
-            transition: background-color 0.4s, color 0.4s, border-color 0.4s;
-        }
-
-        body {
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
-            overflow-x: hidden;
-            min-height: 100vh;
-            padding-bottom: 100px;
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.1) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.1) 0px, transparent 50%);
-            background-attachment: fixed;
-        }
-
-        /* --- الهيدر الزجاجي --- */
-        header {
-            background: var(--bg-secondary);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            padding: 1.2rem 5%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--glass-border);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .logo {
-            font-size: 1.6rem;
-            font-weight: 900;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: var(--accent);
-            text-shadow: 0 0 15px var(--accent-glow);
-        }
-
-        .controls {
-            display: flex;
-            gap: 15px;
-        }
-
-        .btn-ctrl {
-            background: var(--bg-secondary);
-            border: 1px solid var(--glass-border);
-            color: var(--text-primary);
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-
-        .btn-ctrl:hover {
-            transform: translateY(-3px) scale(1.05);
-            border-color: var(--accent);
-            box-shadow: 0 0 15px var(--accent-glow);
-        }
-
-        /* --- التبويبات العلوية فائقة الحيوية --- */
-        .nav-container {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            margin: 30px auto 10px;
-            padding: 0 5%;
-            flex-wrap: wrap;
-            max-width: 1200px;
-        }
-
-        .nav-btn {
-            background: var(--bg-secondary);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border);
-            color: var(--text-primary);
-            padding: 14px 24px;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 0.95rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
-
-        .nav-btn:hover, .nav-btn.active {
-            background: var(--accent);
-            color: white;
-            border-color: transparent;
-            box-shadow: 0 8px 25px var(--accent-glow);
-            transform: translateY(-3px);
-        }
-
-        /* --- المحتويات --- */
-        .section-wrapper {
-            max-width: 900px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
-
-        .content-card {
-            display: none;
-            background: var(--bg-secondary);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 30px;
-            padding: 40px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
-            position: relative;
-            animation: cardEntrance 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        .content-card.active {
-            display: block;
-        }
-
-        .card-header h2 {
-            font-size: 1.8rem;
-            font-weight: 800;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .card-header p {
-            color: var(--text-secondary);
-            margin-bottom: 30px;
-            font-size: 0.95rem;
-        }
-
-        /* --- منصة سحب وإلقاء الملفات الذكية --- */
-        .dropzone-container {
-            border: 3px dashed var(--glass-border);
-            background: rgba(var(--accent-rgb, 59, 130, 246), 0.02);
-            border-radius: 24px;
-            padding: 50px 20px;
-            text-align: center;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .dropzone-container:hover {
-            border-color: var(--accent);
-            background: rgba(var(--accent-rgb, 59, 130, 246), 0.05);
-        }
-
-        .dropzone-container i.dz-icon {
-            font-size: 4rem;
-            color: var(--accent);
-            margin-bottom: 15px;
-            text-shadow: 0 0 20px var(--accent-glow);
-        }
-
-        .dropzone-container input[type="file"] {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
-        }
-
-        /* --- إعدادات الأدوات الإضافية والتحويل --- */
-        .settings-grid {
-            margin-top: 30px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            text-align: right;
-        }
-
-        [dir="ltr"] .settings-grid {
-            text-align: left;
-        }
-
-        .setting-box {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .setting-box label {
-            font-size: 0.9rem;
-            font-weight: bold;
-            color: var(--text-primary);
-        }
-
-        .setting-box select, .setting-box input {
-            background: var(--bg-primary);
-            border: 1px solid var(--glass-border);
-            color: var(--text-primary);
-            padding: 14px;
-            border-radius: 12px;
-            outline: none;
-            font-size: 0.95rem;
-        }
-
-        .setting-box select:focus, .setting-box input:focus {
-            border-color: var(--accent);
-        }
-
-        /* --- زر الحركة الرئيسي --- */
-        .main-btn {
-            margin-top: 35px;
-            background: var(--accent);
-            color: white;
-            border: none;
-            padding: 16px 40px;
-            font-size: 1.1rem;
-            font-weight: 800;
-            border-radius: 18px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            box-shadow: 0 10px 25px var(--accent-glow);
-        }
-
-        .main-btn:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 15px 30px var(--accent-glow);
-        }
-
-        /* --- صندوق النتيجة التفاعلي --- */
-        .result-box {
-            margin-top: 30px;
-            padding: 25px;
-            border-radius: 20px;
-            background: rgba(16, 185, 129, 0.08);
-            border: 1px solid var(--success);
-            display: none;
-            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-
-        .result-box.show {
-            display: block;
-        }
-
-        /* ============================================= */
-        /* --- بوبو الروبوت التفاعلي الحركي الفاخر --- */
-        /* ============================================= */
-        #bobo-agent {
-            position: absolute;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            pointer-events: none;
-            transition: top 1s cubic-bezier(0.25, 1, 0.5, 1), left 1s cubic-bezier(0.25, 1, 0.5, 1);
-        }
-
-        /* فقاعة الحوار الطائرة */
-        .bobo-dialogue {
-            background: var(--bg-secondary);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            color: var(--text-primary);
-            border: 2px solid var(--accent);
-            padding: 15px 20px;
-            border-radius: 24px;
-            margin-bottom: 15px;
-            width: 250px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.25);
-            pointer-events: auto;
-            position: relative;
-            font-size: 0.95rem;
-            font-weight: bold;
-            line-height: 1.6;
-            animation: bubbleFloat 3s ease-in-out infinite;
-        }
-
-        .bobo-dialogue::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            border-width: 10px 10px 0;
-            border-style: solid;
-            border-color: var(--accent) transparent;
-        }
-
-        /* مجسم الروبوت 2.5D بأنيميشن مذهل */
-        .robot-body {
-            width: 100px;
-            height: 100px;
-            background: linear-gradient(135deg, var(--bobo-color), #a855f7);
-            border-radius: 50% 50% 45% 45%;
-            border: 4px solid #fff;
-            box-shadow: 0 10px 30px var(--accent-glow);
-            position: relative;
-            pointer-events: auto;
-            cursor: pointer;
-            animation: idleFly 3.5s ease-in-out infinite alternate;
-        }
-
-        /* عيون بوبو المضيئة والتعبيرية */
-        .robot-eyes {
-            position: absolute;
-            top: 30%;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 15px;
-        }
-
-        .eye {
-            width: 14px;
-            height: 14px;
-            background: #fff;
-            border-radius: 50%;
-            box-shadow: 0 0 15px #fff;
-            animation: blink 4s infinite;
-        }
-
-        /* الذراع التفاعلية للإشارة بيده */
-        .robot-arm {
-            position: absolute;
-            width: 12px;
-            height: 45px;
-            background: #fff;
-            border-radius: 10px;
-            top: 40%;
-            transform-origin: top center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-
-        .robot-arm.left {
-            left: -10px;
-            animation: leftArmFloat 3.5s ease-in-out infinite alternate;
-        }
-
-        .robot-arm.right {
-            right: -10px;
-            animation: rightArmFloat 3.5s ease-in-out infinite alternate;
-        }
-
-        /* الهالة النفاثة في الأسفل كأنه يطير */
-        .jet-fire {
-            position: absolute;
-            bottom: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 16px;
-            height: 20px;
-            background: linear-gradient(to bottom, #ff7e5f, #feb47b, transparent);
-            border-radius: 50%;
-            animation: fireThruster 0.15s infinite alternate;
-            opacity: 0.8;
-        }
-
-        /* ============================================= */
-        /* --- رقصات بوبو وتصرفاته الديناميكية --- */
-        /* ============================================= */
-
-        /* 1. التفكير والمعالجة */
-        .robot-body.thinking {
-            animation: thinkingSpin 1s infinite linear !important;
-        }
-
-        /* 2. رقصة الاحتفال بالنجاح */
-        .robot-body.happy {
-            animation: happyDance 0.5s ease-in-out infinite alternate !important;
-        }
-        .robot-body.happy .robot-arm.left {
-            animation: armWaving 0.3s infinite alternate !important;
-        }
-
-        /* 3. الإشارة لليمين أو اليسار */
-        .robot-body.pointing-left .robot-arm.left {
-            transform: rotate(-120deg) !important;
-            animation: none !important;
-        }
-        .robot-body.pointing-right .robot-arm.right {
-            transform: rotate(120deg) !important;
-            animation: none !important;
-        }
-
-        /* ============================================= */
-        /* --- الحركات والأنيميشن التفاعلي --- */
-        /* ============================================= */
-        @keyframes idleFly {
-            0% { transform: translateY(0px) rotate(-1deg); }
-            50% { transform: translateY(-15px) rotate(1deg); }
-            100% { transform: translateY(0px) rotate(-1deg); }
-        }
-
-        @keyframes bubbleFloat {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-        }
-
-        @keyframes blink {
-            0%, 45%, 55%, 100% { transform: scaleY(1); }
-            50% { transform: scaleY(0.1); }
-        }
-
-        @keyframes leftArmFloat {
-            0% { transform: rotate(10deg); }
-            100% { transform: rotate(-10deg); }
-        }
-
-        @keyframes rightArmFloat {
-            0% { transform: rotate(-10deg); }
-            100% { transform: rotate(10deg); }
-        }
-
-        @keyframes fireThruster {
-            0% { height: 12px; transform: translateX(-50%) scaleX(0.8); }
-            100% { height: 22px; transform: translateX(-50%) scaleX(1.2); }
-        }
-
-        @keyframes thinkingSpin {
-            0% { transform: rotate(0deg) translateY(-5px); }
-            100% { transform: rotate(360deg) translateY(-5px); }
-        }
-
-        @keyframes happyDance {
-            0% { transform: translateY(0) rotate(-10deg) scale(1.1); }
-            100% { transform: translateY(-30px) rotate(10deg) scale(1.1); }
-        }
-
-        @keyframes armWaving {
-            0% { transform: rotate(-160deg); }
-            100% { transform: rotate(-60deg); }
-        }
-
-        @keyframes cardEntrance {
-            from { opacity: 0; transform: translateY(30px) scale(0.96); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-
-        @keyframes popIn {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
-        @media (max-width: 768px) {
-            #bobo-agent {
-                transform: scale(0.85);
-            }
-        }
-    </style>
+    <title>موقعك الإلكتروني</title>
+    <!-- استيراد ملف CSS -->
+    <link rel="stylesheet" href="style.css">
+    <!-- استيراد ملف JS -->
+    <script src="script.js" defer></script>
 </head>
 <body>
 
-    <!-- هيدر التحكم والتبديل السريع -->
     <header>
-        <div class="logo">
-            <i class="fa-solid fa-wand-magic-sparkles"></i>
-            <span>FileWizard v2.0</span>
-        </div>
-        <div class="controls">
-            <button class="btn-ctrl" id="theme-btn" onclick="toggleTheme()" title="الوضع الليلي والنهاري">
-                <i class="fa-solid fa-moon"></i>
-            </button>
-            <button class="btn-ctrl" id="lang-btn" onclick="toggleLanguage()" title="تغيير اللغة / Switch Lang">
-                <i class="fa-solid fa-language"></i>
-            </button>
+        <div class="container">
+            <nav>
+                <a href="#" class="logo">موقعك</a>
+                <ul>
+                    <li><a href="#">الرئيسية</a></li>
+                    <li><a href="#about">عن الموقع</a></li>
+                    <li><a href="#tools">الأدوات</a></li>
+                    <li><a href="#contact">اتصل بنا</a></li>
+                </ul>
+                <button class="menu-toggle">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </button>
+            </nav>
         </div>
     </header>
 
-    <!-- الألسنة والتبويبات المتقدمة للأدوات -->
-    <nav class="nav-container">
-        <button class="nav-btn active" onclick="activeTab(0, 'pdf-section')" id="nav0">
-            <i class="fa-solid fa-file-pdf"></i> <span class="tab-txt">صورة إلى PDF / OCR</span>
-        </button>
-        <button class="nav-btn" onclick="activeTab(1, 'zip-section')" id="nav1">
-            <i class="fa-solid fa-file-zipper"></i> <span class="tab-txt">الضغط والفك</span>
-        </button>
-        <button class="nav-btn" onclick="activeTab(2, 'excel-word-section')" id="nav2">
-            <i class="fa-solid fa-file-excel"></i> <span class="tab-txt">تحويل Office الذكي</span>
-        </button>
-        <button class="nav-btn" onclick="activeTab(3, 'image-enhance-section')" id="nav3">
-            <i class="fa-solid fa-image-portrait"></i> <span class="tab-txt">جودة وترقية الصور</span>
-        </button>
-    </nav>
-
-    <!-- النوافذ الوظيفية -->
-    <main class="section-wrapper">
-        
-        <!-- الأداة 1: صورة لـ PDF و OCR المستندات -->
-        <section id="pdf-section" class="content-card active">
-            <div class="card-header">
-                <h2 id="pdf-t"><i class="fa-solid fa-file-image"></i> محول الصور والمسودات لـ PDF ذكي</h2>
-                <p id="pdf-d">حول لقطات الكاميرا والورق لملف PDF عالي الوضوح، مع سحب النصوص والكلمات المكتوبة بالكامل.</p>
+    <section id="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>استكشف عالمك الرقمي</h1>
+                <p>مرحباً بك في موقعنا، حيث يمكنك الوصول إلى مجموعة متنوعة من الأدوات والمعلومات.</p>
+                <a href="#tools" class="btn btn-primary">ابدأ الآن</a>
             </div>
-            <div class="dropzone-container">
-                <i class="fa-solid fa-cloud-arrow-up dz-icon"></i>
-                <h3 class="dz-p">اسحب صورة المستند هنا أو التقطها</h3>
-                <input type="file" id="pdf-file" accept="image/*" onchange="triggerBoboAction('file-upload')">
+            <div class="hero-image">
+                <!-- يمكنك إضافة صورة أو أي شيء آخر هنا -->
             </div>
-            <button class="main-btn" onclick="processTask('pdf')">
-                <i class="fa-solid fa-bolt"></i> <span id="pdf-b">تحويل وتوليد الـ PDF</span>
-            </button>
-            <div class="result-box" id="pdf-res">
-                <p><i class="fa-solid fa-check-circle" style="color: var(--success);"></i> <span id="pdf-s">أكتمل استخراج النصوص! تم توليد ملف PDF فائق الوضوح ومحاذاته هندسياً.</span></p>
-                <button class="main-btn" style="background: var(--success); margin-top: 15px;"><i class="fa-solid fa-download"></i> <span id="dl-btn">تحميل الملف</span></button>
-            </div>
-        </section>
-
-        <!-- الأداة 2: ضغط وفك الضغط للملفات -->
-        <section id="zip-section" class="content-card">
-            <div class="card-header">
-                <h2 id="zip-t"><i class="fa-solid fa-file-zipper"></i> حزمة ضغط وفك ضغط الملفات</h2>
-                <p id="zip-d">اضغط ملفاتك الكبيرة لحفظ مساحتها وتسهيل نقلها، أو فك ضغط أي أرشيف ZIP بنقرة ذكية واحدة.</p>
-            </div>
-            <div class="settings-grid" style="grid-template-columns: 1fr; margin-bottom: 25px;">
-                <div class="setting-box">
-                    <label id="zip-l">نوع العملية:</label>
-                    <select id="zip-act">
-                        <option value="c">تجميع وضغط الملفات إلى ZIP</option>
-                        <option value="d">فك وضغط واستخراج ملف ZIP</option>
-                    </select>
-                </div>
-            </div>
-            <div class="dropzone-container">
-                <i class="fa-solid fa-folder-open dz-icon"></i>
-                <h3 class="dz-p">اسحب الأرشيف أو الملفات هنا</h3>
-                <input type="file" id="zip-file" multiple onchange="triggerBoboAction('file-upload')">
-            </div>
-            <button class="main-btn" onclick="processTask('zip')">
-                <i class="fa-solid fa-box-open"></i> <span id="zip-b">تنفيذ العملية</span>
-            </button>
-            <div class="result-box" id="zip-res">
-                <p><i class="fa-solid fa-check-circle" style="color: var(--success);"></i> <span id="zip-s">رائع! تم تجميع الأرشيف وفك محتوياته بدقة متناهية وسرعة خارقة.</span></p>
-                <button class="main-btn" style="background: var(--success); margin-top: 15px;"><i class="fa-solid fa-download"></i> <span id="dl-btn2">تنزيل الأرشيف الناتج</span></button>
-            </div>
-        </section>
-
-        <!-- الأداة 3: تحويل Excel و Word والمستندات -->
-        <section id="excel-word-section" class="content-card">
-            <div class="card-header">
-                <h2 id="off-t"><i class="fa-solid fa-file-word"></i> منصة تحويل مستندات Office</h2>
-                <p id="off-d">أداة مرنة للغاية لتحويل ملفات Excel و Word والتقارير من وإلى أي صيغة ترغب بها في العمل.</p>
-            </div>
-            <div class="dropzone-container">
-                <i class="fa-solid fa-file-invoice-dollar dz-icon"></i>
-                <h3 class="dz-p">ارفع ملف Word أو Excel المُراد تحويله</h3>
-                <input type="file" id="off-file" accept=".doc,.docx,.xls,.xlsx" onchange="triggerBoboAction('file-upload')">
-            </div>
-            <div class="settings-grid">
-                <div class="setting-box">
-                    <label id="off-to">تحويل إلى صيغة:</label>
-                    <select>
-                        <option>PDF Document (.pdf)</option>
-                        <option>Excel Worksheet (.xlsx)</option>
-                        <option>Word Document (.docx)</option>
-                        <option>نص نقي (.txt)</option>
-                    </select>
-                </div>
-                <div class="setting-box">
-                    <label id="off-sty">ستايل الهيكل والجدول:</label>
-                    <select>
-                        <option>تنسيق افتراضي رسمي</option>
-                        <option>تنسيق ألوان عصرية</option>
-                        <option>بدون ستايل ورسوم</option>
-                    </select>
-                </div>
-            </div>
-            <button class="main-btn" onclick="processTask('off')">
-                <i class="fa-solid fa-shuffle"></i> <span id="off-b">تحويل المستند المكتبي</span>
-            </button>
-            <div class="result-box" id="off-res">
-                <p><i class="fa-solid fa-check-circle" style="color: var(--success);"></i> <span id="off-s">تم تبديل وتنسيق الملف بالكامل لتتمكن من فتحه من أي جهاز!</span></p>
-                <button class="main-btn" style="background: var(--success); margin-top: 15px;"><i class="fa-solid fa-file-arrow-down"></i> <span id="dl-btn3">تحميل الملف المحدث</span></button>
-            </div>
-        </section>
-
-        <!-- الأداة 4: ترقية جودة الصور -->
-        <section id="image-enhance-section" class="content-card">
-            <div class="card-header">
-                <h2 id="img-t"><i class="fa-solid fa-wand-magic-sparkles"></i> ترقية جودة وتوليد الصور (Upscaler)</h2>
-                <p id="img-d">ضاعف دقة صورك الضعيفة أو غير الواضحة واحصل على تفاصيل فائقة بفضل خوارزمية بوبو البصرية.</p>
-            </div>
-            <div class="dropzone-container">
-                <i class="fa-solid fa-camera-retro dz-icon"></i>
-                <h3 class="dz-p">ارفع صورتك باهتة الملامح هنا</h3>
-                <input type="file" id="img-file" accept="image/*" onchange="triggerBoboAction('file-upload')">
-            </div>
-            <div class="settings-grid" style="grid-template-columns: 1fr 1fr;">
-                <div class="setting-box">
-                    <label id="img-scale">درجة مضاعفة الحجم:</label>
-                    <select>
-                        <option>Ultra HD (4x upscale)</option>
-                        <option>High Quality (2x upscale)</option>
-                        <option>Standard (1x sharpen)</option>
-                    </select>
-                </div>
-                <div class="setting-box">
-                    <label id="img-mod">الفلتر الذكي:</label>
-                    <select>
-                        <option>إزالة التشويش والضبابية</option>
-                        <option>تحسين ملامح الوجوه بدقة</option>
-                        <option>عزل عمق الألوان</option>
-                    </select>
-                </div>
-            </div>
-            <button class="main-btn" onclick="processTask('img')">
-                <i class="fa-solid fa-wand-magic"></i> <span id="img-b">توليد وصقل ملامح الصورة</span>
-            </button>
-            <div class="result-box" id="img-res">
-                <p><i class="fa-solid fa-check-circle" style="color: var(--success);"></i> <span id="img-s">مدهش! تم تحسين تفاصيل الصورة ومضاعفة أبعادها بدقة 4K فائقة.</span></p>
-                <button class="main-btn" style="background: var(--success); margin-top: 15px;"><i class="fa-solid fa-image"></i> <span id="dl-btn4">تحميل الصورة بدقة عالية</span></button>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- الروبوت بوبو التفاعلي -->
-    <div id="bobo-agent">
-        <div class="bobo-dialogue" id="bobo-dialogue">...</div>
-        <div class="robot-body" id="bobo-body" onclick="boboRandomResponse()">
-            <div class="robot-eyes">
-                <div class="eye"></div>
-                <div class="eye"></div>
-            </div>
-            <div class="robot-arm left"></div>
-            <div class="robot-arm right"></div>
-            <div class="jet-fire"></div>
         </div>
-    </div>
+    </section>
 
-    <!-- جافا سكريبت تفاعل بوبو التلقائي بالكامل والتصرفات العشوائية -->
-    <script>
-        const i18n = {
-            ar: {
-                welcome: "مرحباً يا صديقي! أنا بوبو رفيقك الآلي 🤖 سأتحرك معك لمساعدتك بأدوات الملفات فوراً!",
-                tab0: "هنا سحر خاص! اعطني صورة لورقة أو كتاب وسأصنع لك منها ملف PDF احترافي مع استخراج النصوص الذكية 📖!",
-                tab1: "أدوات الضغط! دعني أحزم ملفاتك لتوفير مساحة هاتفك أو جهازك، أو أفك لك الضغط بلمحة سريعة 📂!",
-                tab2: "مكتبة الأوفيس! سأقوم بتحويل ملفات الوورد والإكسيل المعقدة وحفظها بأي تنسيق ومظهر رائع 📈!",
-                tab3: "فلترة جودة الصورة! دعني أضاعف أبعاد صورك القديمة وأزيل عنها الضبابية لتبدو نابضة بالحياة 📸!",
-                processing: "اممم.. دعني أحسب وأفحص ملفاتك.. جاري المعالجة السحرية بدقة ترقبوا! ⚙️",
-                complete: "يا له من عمل رائع! لقد نجحت المهمة بنجاح، ملفك جاهز الآن للتحميل بأفضل حلة! 🎉",
-                fileIn: "أوه! لقد أحضرت لي ملفاً رائعاً.. دعنا نضغط زر البدء لنبدأ بتعديله فوراً 🚀",
-                tickle: "ههههه! هذا يدغدغ.. اضغط على خياراتي لأتنقل وأريك ما يمكنني فعله!",
-                themeDark: "لقد تحولت للوضع الداكن المريح.. عيناك في أمان وراحة مطلقة الآن 🌌",
-                themeLight: "أضاء النور! قمت بتفعيل الوضع النهاري والساطع لمزيد من الحيوية ☀️",
-                dz: "اسحب ملفاتك هنا أو انقر لاختيارها"
-            },
-            en: {
-                welcome: "Hey buddy! I am Bobo 🤖. I will navigate and hover automatically to explain every feature!",
-                tab0: "Document Magic! Give me document photos, and I'll generate clean PDFs and extract written words 📖!",
-                tab1: "Archive power! Let me package your heavy folders into tiny ZIPs or extract them effortlessly 📂!",
-                tab2: "Office Library! I'll transform complex Word and Excel reports into any format beautifully 📈!",
-                tab3: "Enhance Quality! Watch me boost clarity of your blurry, old pictures into 4K masterworks 📸!",
-                processing: "Hmmm.. processing your files with my high-tech gears.. watch me go! ⚙️",
-                complete: "Awesome job! The task is fully complete. Your optimized file is ready to download! 🎉",
-                fileIn: "Oh! You brought me a file.. Let's click the button to start the processing 🚀",
-                tickle: "Haha! That tickles. Let's do some magic on your documents!",
-                themeDark: "Switched to Dark Mode. Your eyes are completely relaxed now! 🌌",
-                themeLight: "Bright lights active! Time to work with high energy ☀️",
-                dz: "Drag & drop files here or click to browse"
-            }
-        };
+    <section id="tools">
+        <div class="container">
+            <h2>الأدوات</h2>
+            <div class="tools-grid">
+                <div class="tool-card">
+                    <i class="fas fa-search"></i>
+                    <h3>البحث</h3>
+                    <p>ابحث عن ما تريد.</p>
+                </div>
+                <div class="tool-card">
+                    <i class="fas fa-calculator"></i>
+                    <h3>الآلة الحاسبة</h3>
+                    <p>احسب الأرقام بسهولة.</p>
+                </div>
+                <div class="tool-card">
+                    <i class="fas fa-edit"></i>
+                    <h3>الملاحظات</h3>
+                    <p>اكتب ملاحظاتك.</p>
+                </div>
+                <!-- أدوات جديدة -->
+                <div class="tool-card">
+                    <i class="fas fa-link"></i>
+                    <h3>مختصر الروابط</h3>
+                    <p>احصل على روابط أقصر.</p>
+                </div>
+                <div class="tool-card">
+                    <i class="fas fa-qrcode"></i>
+                    <h3>مولد رمز الاستجابة السريعة</h3>
+                    <p>أنشئ رموز استجابة سريعة.</p>
+                </div>
+                <div class="tool-card">
+                    <i class="fas fa-clock"></i>
+                    <h3>الساعة</h3>
+                    <p>اطلع على الوقت.</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
-        let currentLang = 'ar';
-        let currentSectionIndex = 0;
+    <section id="about">
+        <div class="container">
+            <div class="about-content">
+                <h2>عن الموقع</h2>
+                <p>موقعنا هو منصة شاملة توفر مجموعة من الأدوات والمعلومات التي تحتاجها في حياتك اليومية. نحن نسعى جاهدين لتقديم أفضل تجربة مستخدم ممكنة، ونعمل باستمرار على تحسين وتطوير موقعنا.</p>
+            </div>
+            <div class="about-image">
+                <!-- يمكنك إضافة صورة أو أي شيء آخر هنا -->
+            </div>
+        </div>
+    </section>
 
-        // مصفوفة أقسام التبويبات لربط تحركات بوبو التلقائية
-        const sections = [
-            { btnId: 'nav0', secId: 'pdf-section', intro: 'tab0' },
-            { btnId: 'nav1', secId: 'zip-section', intro: 'tab1' },
-            { btnId: 'nav2', secId: 'excel-word-section', intro: 'tab2' },
-            { btnId: 'nav3', secId: 'image-enhance-section', intro: 'tab3' }
-        ];
+    <section id="contact">
+        <div class="container">
+            <h2>اتصل بنا</h2>
+            <form action="#">
+                <div class="form-group">
+                    <label for="name">الاسم</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">البريد الإلكتروني</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="message">الرسالة</label>
+                    <textarea id="message" name="message" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">إرسال</button>
+            </form>
+        </div>
+    </section>
 
-        // تفعيل التبويبات مع تحرك بوبو التلقائي بالكامل
-        function activeTab(index, sectionId) {
-            currentSectionIndex = index;
-            
-            // إزالة نشاط الأزرار القديمة
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.content-card').forEach(card => card.classList.remove('active'));
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 موقعك. جميع الحقوق محفوظة.</p>
+        </div>
+    </footer>
 
-            // تنشيط الجديد
-            document.getElementById(sections[index].btnId).classList.add('active');
-            document.getElementById(sectionId).classList.add('active');
-
-            // بوبو يتحرك تلقائياً وبدون أي تدخل
-            moveBoboToSection();
-        }
-
-        // حركة الروبوت بوبو وملاحقته لنشاط المستخدم
-        function moveBoboToSection() {
-            const currentTabBtn = document.getElementById(sections[currentSectionIndex].btnId);
-            const rect = currentTabBtn.getBoundingClientRect();
-            const boboAgent = document.getElementById('bobo-agent');
-            const boboBody = document.getElementById('bobo-body');
-            const dialogue = document.getElementById('bobo-dialogue');
-
-            // إزالة الوضعيات السابقة
-            boboBody.className = "robot-body";
-
-            // حساب تمركز بوبو ليحوم وراء التبويب تماماً ليوجهك
-            const topY = window.scrollY + rect.top - 180;
-            const leftX = rect.left + (rect.width / 2) - 50;
-
-            boboAgent.style.top = topY + "px";
-            boboAgent.style.left = leftX + "px";
-
-            // تغيير حركة ذراع بوبو ليؤشر لليمين أو اليسار بناءاً على الحركة
-            if (currentSectionIndex >= 2) {
-                boboBody.classList.add('pointing-left');
-            } else {
-                boboBody.classList.add('pointing-right');
-            }
-
-            // تحديث كلام بوبو التوجيهي بناء على الأداة التي تقف عليها
-            dialogue.innerText = i18n[currentLang][sections[currentSectionIndex].intro];
-
-            // بعد فترة قصيرة، يتوقف عن الإشارة ويعود لوضع الطيران المريح
-            setTimeout(() => {
-                boboBody.className = "robot-body";
-            }, 3000);
-        }
-
-        // تفاعلات بوبو التلقائية عند رفع الملفات
-        function triggerBoboAction(actionType) {
-            const dialogue = document.getElementById('bobo-dialogue');
-            const boboBody = document.getElementById('bobo-body');
-
-            if (actionType === 'file-upload') {
-                dialogue.innerText = i18n[currentLang].fileIn;
-                boboBody.classList.add('happy');
-                
-                setTimeout(() => {
-                    boboBody.classList.remove('happy');
-                }, 2000);
-            }
-        }
-
-        // محاكاة معالجة المهام مع رقصات وحركات بوبو المتنوعة (تفکير، رقصة سعيدة)
-        function processTask(type) {
-            const resultBox = document.getElementById(type + '-res');
-            const successMsg = document.getElementById(type + '-s');
-            const dialogue = document.getElementById('bobo-dialogue');
-            const boboBody = document.getElementById('bobo-body');
-
-            // بوبو يبدأ بالتفكير ويدور بحركة أنيميشن سريعة ومرحة
-            boboBody.classList.add('thinking');
-            dialogue.innerText = i18n[currentLang].processing;
-            resultBox.classList.remove('show');
-
-            setTimeout(() => {
-                // بوبو يتوقف عن التفكير ويرقص رقصة سعيدة بمناسبة انتهاء المعالجة
-                boboBody.classList.remove('thinking');
-                boboBody.classList.add('happy');
-                dialogue.innerText = i18n[currentLang].complete;
-
-                // إظهار صندوق النتيجة
-                resultBox.classList.add('show');
-
-                // إيقاف الرقص بعد 3 ثواني
-                setTimeout(() => {
-                    boboBody.classList.remove('happy');
-                }, 3000);
-
-            }, 2500); // محاكاة وقت المعالجة اللطيف
-        }
-
-        // تفاعل عشوائي مرح عند الضغط على بوبو مباشرة بدغدغة أو رقصة
-        function boboRandomResponse() {
-            const dialogue = document.getElementById('bobo-dialogue');
-            const boboBody = document.getElementById('bobo-body');
-            
-            dialogue.innerText = i18n[currentLang].tickle;
-            boboBody.classList.add('happy');
-            
-            setTimeout(() => {
-                boboBody.classList.remove('happy');
-            }, 2000);
-        }
-
-        // تبديل اللغات للعربية والإنجليزية بشكل تفاعلي
-        function toggleLanguage() {
-            currentLang = currentLang === 'ar' ? 'en' : 'ar';
-            document.documentElement.setAttribute('lang', currentLang);
-            document.documentElement.setAttribute('dir', currentLang === 'ar' ? 'rtl' : 'ltr');
-
-            // ترجمة التبويبات والمحتويات والأزرار
-            if (currentLang === 'ar') {
-                document.getElementById('nav0').innerHTML = `<i class="fa-solid fa-file-pdf"></i> <span class="tab-txt">صورة إلى PDF / OCR</span>`;
-                document.getElementById('nav1').innerHTML = `<i class="fa-solid fa-file-zipper"></i> <span class="tab-txt">الضغط والفك</span>`;
-                document.getElementById('nav2').innerHTML = `<i class="fa-solid fa-file-excel"></i> <span class="tab-txt">تحويل Office الذكي</span>`;
-                document.getElementById('nav3').innerHTML = `<i class="fa-solid fa-image-portrait"></i> <span class="tab-txt">جودة وترقية الصور</span>`;
-
-                document.getElementById('pdf-t').innerText = "محول الصور والمسودات لـ PDF ذكي";
-                document.getElementById('pdf-d').innerText = "حول لقطات الكاميرا والورق لملف PDF عالي الوضوح، مع سحب النصوص والكلمات المكتوبة بالكامل.";
-                document.getElementById('pdf-b').innerText = "تحويل وتوليد الـ PDF";
-
-                document.getElementById('zip-t').innerText = "حزمة ضغط وفك ضغط الملفات";
-                document.getElementById('zip-d').innerText = "اضغط ملفاتك الكبيرة لحفظ مساحتها وتسهيل نقلها، أو فك ضغط أي أرشيف ZIP بنقرة ذكية واحدة.";
-                document.getElementById('zip-b').innerText = "تنفيذ العملية";
-
-                document.getElementById('off-t').innerText = "منصة تحويل مستندات Office";
-                document.getElementById('off-d').innerText = "أداة مرنة للغاية لتحويل ملفات Excel و Word والتقارير من وإلى أي صيغة ترغب بها في العمل.";
-                document.getElementById('off-b').innerText = "تحويل المستند المكتبي";
-
-                document.getElementById('img-t').innerText = "ترقية جودة وتوليد الصور (Upscaler)";
-                document.getElementById('img-d').innerText = "ضاعف دقة صورك الضعيفة أو غير الواضحة واحصل على تفاصيل فائقة بفضل خوارزمية بوبو البصرية.";
-                document.getElementById('img-b').innerText = "توليد وصقل ملامح الصورة";
-            } else {
-                document.getElementById('nav0').innerHTML = `<i class="fa-solid fa-file-pdf"></i> <span class="tab-txt">Image to PDF / OCR</span>`;
-                document.getElementById('nav1').innerHTML = `<i class="fa-solid fa-file-zipper"></i> <span class="tab-txt">ZIP/Unzip Package</span>`;
-                document.getElementById('nav2').innerHTML = `<i class="fa-solid fa-file-excel"></i> <span class="tab-txt">Office Converter</span>`;
-                document.getElementById('nav3').innerHTML = `<i class="fa-solid fa-image-portrait"></i> <span class="tab-txt">Upscale Image Quality</span>`;
-
-                document.getElementById('pdf-t').innerText = "Images to Smart PDF & OCR Converter";
-                document.getElementById('pdf-d').innerText = "Transform images and sketches into a sharp PDF, complete with smart OCR text extraction.";
-                document.getElementById('pdf-b').innerText = "Generate PDF document";
-
-                document.getElementById('zip-t').innerText = "Compress & Extract Tools";
-                document.getElementById('zip-d').innerText = "Shrink big files to save storage space or unpack ZIP archives with one smart tap.";
-                document.getElementById('zip-b').innerText = "Execute Task";
-
-                document.getElementById('off-t').innerText = "Office Documents Processor";
-                document.getElementById('off-d').innerText = "Flexible utility designed to convert Excel spreadsheets and Word documents to various formats.";
-                document.getElementById('off-b').innerText = "Convert Office File";
-
-                document.getElementById('img-t').innerText = "Advanced Image Upscaler & Enhancer";
-                document.getElementById('img-d').innerText = "Double resolution and details of blurry or old shots with Bobo's special graphics filter.";
-                document.getElementById('img-b').innerText = "Sharpen & Upscale Image";
-            }
-
-            document.querySelectorAll('.dz-p').forEach(el => el.innerText = i18n[currentLang].dz);
-
-            // بوبو يتكلم بلغة التحديث الجديدة ويعيد توجيه نفسه
-            moveBoboToSection();
-        }
-
-        // تشغيل الوضع الليلي المريح للعين
-        function toggleTheme() {
-            const html = document.documentElement;
-            const isDark = html.getAttribute('data-theme') === 'dark';
-            const nextTheme = isDark ? 'light' : 'dark';
-            html.setAttribute('data-theme', nextTheme);
-
-            const icon = document.querySelector('#theme-btn i');
-            icon.className = nextTheme === 'dark' ? "fa-solid fa-moon" : "fa-solid fa-sun";
-
-            // بوبو يخبرك برأيه في الوضع الجديد
-            document.getElementById('bobo-dialogue').innerText = nextTheme === 'dark' ? i18n[currentLang].themeDark : i18n[currentLang].themeLight;
-        }
-
-        // عند تحميل الصفحة لأول مرة، يرحب بوبو بالمستخدم ويأخذ وضعه الأولي
-        window.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => {
-                activeTab(0, 'pdf-section');
-            }, 800);
-        });
-
-        // جعل بوبو مرناً مع إعادة ضبط حجم الشاشة
-        window.addEventListener('resize', () => {
-            moveBoboToSection();
-        });
-    </script>
 </body>
 </html>
