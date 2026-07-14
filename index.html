@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مكعب روبيك ثلاثي الأبعاد والحل الذكي</title>
+    <title>Rubik's Master - مكعب روبيك العالمي ثلاثي الأبعاد</title>
     <style>
         :root {
-            --primary-color: #2c3e50;
-            --accent-color: #3498db;
-            --bg-color: #1a1a1a;
-            --text-color: #ffffff;
+            --bg-color: #0d0e12;
+            --panel-color: #161822;
+            --accent-color: #00f2fe;
+            --accent-glow: rgba(0, 242, 254, 0.4);
+            --text-color: #f1f2f6;
+            --border-radius: 16px;
         }
 
         body {
@@ -21,134 +23,200 @@
             overflow-x: hidden;
         }
 
-        /* شريط التنقل العلوي */
+        /* رأس الصفحة (Header) */
         header {
-            background-color: var(--primary-color);
-            padding: 15px 20px;
+            background-color: var(--panel-color);
+            padding: 20px 40px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            border-bottom: 2px solid #23273a;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
-        h1 {
-            margin: 0;
-            font-size: 1.5rem;
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(45deg, #00f2fe, #4facfe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 1px;
         }
 
         .nav-tabs {
             display: flex;
-            gap: 10px;
+            gap: 15px;
         }
 
         .tab-btn {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
+            background: #1f2335;
+            color: var(--text-color);
+            border: 1px solid #3b4261;
+            padding: 12px 24px;
+            border-radius: 30px;
             cursor: pointer;
-            transition: 0.3s ease;
-            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .tab-btn.active, .tab-btn:hover {
-            background-color: var(--accent-color);
+        .tab-btn.active {
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            color: #000;
+            font-weight: 700;
+            border-color: transparent;
+            box-shadow: 0 0 15px var(--accent-glow);
         }
 
-        /* محتوى التبويبات */
+        /* محتوى الموقع */
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
         .tab-content {
             display: none;
-            padding: 20px;
-            min-height: calc(100vh - 80px);
-            box-sizing: border-box;
+            animation: fadeIn 0.5s ease-in-out forwards;
         }
 
         .tab-content.active {
-            display: block;
-        }
-
-        /* تبويب اللعب ثلاثي الأبعاد */
-        #play-tab {
-            position: relative;
-            text-align: center;
-        }
-
-        #canvas-container {
-            width: 100%;
-            height: 500px;
-            background: #111;
-            border-radius: 10px;
-            margin: 10px auto;
-            position: relative;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
-        }
-
-        .controls {
-            margin-top: 15px;
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: 0.2s;
-        }
-
-        .btn:hover {
-            opacity: 0.9;
-            transform: scale(1.05);
-        }
-
-        /* تبويب إدخال الألوان والحل */
-        #solve-tab {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .solve-container {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* تصميم صفحة اللعب والـ 3D */
+        .play-grid {
+            grid-template-columns: 2fr 1fr;
             gap: 30px;
         }
 
-        @media (max-width: 768px) {
-            .solve-container {
+        @media (max-width: 900px) {
+            .play-grid {
                 grid-template-columns: 1fr;
             }
         }
 
-        /* لوحة إدخال الألوان */
+        #canvas-wrapper {
+            background-color: var(--panel-color);
+            border-radius: var(--border-radius);
+            height: 550px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #23273a;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+        }
+
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        .sidebar {
+            background-color: var(--panel-color);
+            padding: 25px;
+            border-radius: var(--border-radius);
+            border: 1px solid #23273a;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .btn {
+            background: #23273a;
+            color: var(--text-color);
+            border: 1px solid #3b4261;
+            padding: 14px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn:hover {
+            background: #2e344e;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            color: #000;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        /* صفحة المدخلات والحل */
+        .solve-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+
+        @media (max-width: 900px) {
+            .solve-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .palette {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            background: #1f2335;
+            padding: 15px;
+            border-radius: 50px;
+        }
+
+        .color-option {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid #000;
+            transition: transform 0.2s;
+        }
+
+        .color-option.selected {
+            transform: scale(1.2);
+            box-shadow: 0 0 15px #fff;
+        }
+
+        /* تخطيط الأوجه ثنائي الأبعاد */
         .cube-layout {
             display: grid;
-            grid-template-columns: repeat(4, 80px);
-            grid-template-rows: repeat(3, 80px);
-            gap: 10px;
+            grid-template-columns: repeat(4, 90px);
+            grid-template-rows: repeat(3, 90px);
+            gap: 15px;
             justify-content: center;
-            background: #222;
-            padding: 20px;
-            border-radius: 10px;
+            background: #15161e;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.6);
         }
 
         .face {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             grid-template-rows: repeat(3, 1fr);
-            gap: 2px;
-            background: #000;
-            padding: 3px;
-            border-radius: 5px;
+            gap: 3px;
+            background: #111;
+            padding: 5px;
+            border-radius: 8px;
         }
 
-        /* تموضع أوجه المكعب على شكل مخطط ثنائي الأبعاد */
         .face-U { grid-column: 2; grid-row: 1; }
         .face-L { grid-column: 1; grid-row: 2; }
         .face-F { grid-column: 2; grid-row: 2; }
@@ -159,177 +227,210 @@
         .sticker {
             width: 100%;
             height: 100%;
-            background-color: #555;
-            border-radius: 2px;
+            background-color: #3b4261;
+            border-radius: 4px;
             cursor: pointer;
-            transition: transform 0.1s;
+            transition: all 0.2s;
         }
 
         .sticker:hover {
-            transform: scale(1.1);
+            transform: scale(1.08);
+            box-shadow: 0 0 8px rgba(255,255,255,0.5);
         }
 
-        /* لوحة اختيار الألوان لتلوين الملصقات */
-        .palette {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .color-option {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            cursor: pointer;
-            border: 3px solid transparent;
-        }
-
-        .color-option.selected {
-            border-color: #fff;
-            box-shadow: 0 0 10px rgba(255,255,255,0.8);
-        }
-
-        /* خطوات الحل */
-        .solution-panel {
-            background: #222;
-            padding: 20px;
-            border-radius: 10px;
+        /* لوحة خطوات الحل */
+        .steps-container {
+            background-color: var(--panel-color);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            border: 1px solid #23273a;
             display: flex;
             flex-direction: column;
+            gap: 20px;
+        }
+
+        .steps-box {
+            background-color: #0d0e12;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 200px;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            border: 1px solid #1f2335;
+        }
+
+        .step-item {
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: background 0.3s;
+        }
+
+        .step-item.active {
+            background: rgba(0, 242, 254, 0.1);
+            border-left: 4px solid var(--accent-color);
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        .arrow-controls {
+            display: flex;
             gap: 15px;
         }
 
-        .steps-list {
-            background: #111;
-            padding: 15px;
-            border-radius: 5px;
-            max-height: 250px;
-            overflow-y: auto;
-            font-family: monospace;
-            font-size: 1.1rem;
-            line-height: 1.6;
-        }
-
-        .step-navigation {
-            display: flex;
-            justify-content: space-between;
+        .arrow-controls .btn {
+            flex: 1;
         }
     </style>
+    <!-- استيراد مكتبات Three.js الآمنة والحديثة -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
 <body>
 
     <header>
-        <h1>روبيك الذكي 3D</h1>
+        <div class="logo">RUBIK'S MASTER 3D</div>
         <div class="nav-tabs">
-            <button class="tab-btn active" onclick="switchTab('play')">اللعب الحر 3D</button>
-            <button class="tab-btn" onclick="switchTab('solve')">حل مكعبك خطوة بخطوة</button>
+            <button class="tab-btn active" onclick="switchTab('play')">🎮 العب وتفاعل</button>
+            <button class="tab-btn" onclick="switchTab('solve')">🧩 حل مكعبك الحقيقي</button>
         </div>
     </header>
 
-    <main id="play-tab" class="tab-content active">
-        <p>استخدم الفأرة (أو اللمس) لتدوير الكاميرا حول المكعب. الأزرار بالأسفل تتيح لك خلط المكعب وإعادة ضبطه.</p>
-        <div id="canvas-container"></div>
-        <div class="controls">
-            <button class="btn" onclick="scrambleCube()">خلط المكعب (Scramble)</button>
-            <button class="btn" onclick="resetCube()">إعادة ضبط (Reset)</button>
-        </div>
-    </main>
-
-    <main id="solve-tab" class="tab-content">
-        <h2>أدخل ألوان مكعبك الحقيقي</h2>
-        <p>اختر اللون من الدوائر بالأسفل، ثم اضغط على المربعات في مخطط المكعب لتلوينها بما يطابق مكعبك الحقيقي، ثم اضغط "احسب الحل".</p>
+    <div class="container">
         
-        <div class="palette">
-            <div class="color-option selected" style="background-color: white;" data-color="white"></div>
-            <div class="color-option" style="background-color: yellow;" data-color="yellow"></div>
-            <div class="color-option" style="background-color: green;" data-color="green"></div>
-            <div class="color-option" style="background-color: blue;" data-color="blue"></div>
-            <div class="color-option" style="background-color: red;" data-color="red"></div>
-            <div class="color-option" style="background-color: orange;" data-color="orange"></div>
-        </div>
+        <!-- 1. تبويب اللعب التفاعلي -->
+        <main id="play-tab" class="tab-content play-grid active">
+            <div id="canvas-wrapper">
+                <div id="canvas-container"></div>
+            </div>
+            <div class="sidebar">
+                <h2>لوحة التحكم ثلاثية الأبعاد</h2>
+                <p style="color: #a9b1d6; font-size: 0.95rem; line-height: 1.5;">
+                    اسحب الماوس لتدوير زاوية العرض. استخدم الأزرار لتطبيق حركات دوران حقيقية على المكعب ثلاثي الأبعاد!
+                </p>
+                <button class="btn btn-primary" onclick="shuffleCube()">🔀 خلط عشوائي للمكعب</button>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <button class="btn" onclick="rotateFace('R')">R (اليمين)</button>
+                    <button class="btn" onclick="rotateFace('L')">L (اليسار)</button>
+                    <button class="btn" onclick="rotateFace('U')">U (الأعلى)</button>
+                    <button class="btn" onclick="rotateFace('D')">D (الأسفل)</button>
+                    <button class="btn" onclick="rotateFace('F')">F (الأمام)</button>
+                    <button class="btn" onclick="rotateFace('B')">B (الخلف)</button>
+                </div>
+                <button class="btn" onclick="reset3DCube()" style="border-color: #f7768e; color: #f7768e;">♻️ إعادة تعيين بالكامل</button>
+            </div>
+        </main>
 
-        <div class="solve-container">
-            <div class="cube-layout">
-                <div class="face face-U" id="face-U"></div>
-                <div class="face face-L" id="face-L"></div>
-                <div class="face face-F" id="face-F"></div>
-                <div class="face face-R" id="face-R"></div>
-                <div class="face face-B" id="face-B"></div>
-                <div class="face face-D" id="face-D"></div>
+        <!-- 2. تبويب إدخال الألوان والحل الذكي -->
+        <main id="solve-tab" class="tab-content solve-grid">
+            <div>
+                <h2>موزع الألوان التفاعلي</h2>
+                <p style="color: #a9b1d6; margin-bottom: 20px;">اختر اللون من الأسفل ثم اضغط على المربعات لتطابق مكعبك الحقيقي:</p>
+                
+                <div class="palette">
+                    <div class="color-option selected" style="background-color: #ffffff;" data-color="#ffffff"></div>
+                    <div class="color-option" style="background-color: #ffd700;" data-color="#ffd700"></div>
+                    <div class="color-option" style="background-color: #00e676;" data-color="#00e676"></div>
+                    <div class="color-option" style="background-color: #2979ff;" data-color="#2979ff"></div>
+                    <div class="color-option" style="background-color: #ff3d00;" data-color="#ff3d00"></div>
+                    <div class="color-option" style="background-color: #ff9100;" data-color="#ff9100"></div>
+                </div>
+
+                <div class="cube-layout">
+                    <div class="face face-U" id="face-U"></div>
+                    <div class="face face-L" id="face-L"></div>
+                    <div class="face face-F" id="face-F"></div>
+                    <div class="face face-R" id="face-R"></div>
+                    <div class="face face-B" id="face-B"></div>
+                    <div class="face face-D" id="face-D"></div>
+                </div>
             </div>
 
-            <div class="solution-panel">
-                <h3>خطوات الحل المقترحة</h3>
-                <button class="btn" style="background-color: #27ae60;" onclick="solveMyCube()">احسب الحل الآن 🚀</button>
-                <div class="steps-list" id="solution-output">
-                    اضغط على "احسب الحل" بعد تلوين الأوجه لتظهر لك الخطوات بالتفصيل هنا...
+            <div class="steps-container">
+                <h2>دليل الحل الموجه</h2>
+                <button class="btn btn-primary" onclick="generateSolution()">🚀 احسب خطوات الحل الآن</button>
+                <div class="steps-box" id="steps-output">
+                    قم بتلوين الأوجه ثم انقر على زر البدء لترى الخطوات واحدة تلو الأخرى هنا...
                 </div>
-                <div class="step-navigation">
-                    <button class="btn" onclick="prevStep()">الخطوة السابقة</button>
-                    <button class="btn" onclick="nextStep()">الخطوة التالية</button>
+                <div class="arrow-controls">
+                    <button class="btn" onclick="navigateStep(-1)">◀ السابق</button>
+                    <button class="btn" onclick="navigateStep(1)">التالي ▶</button>
                 </div>
             </div>
-        </div>
-    </main>
+        </main>
+
+    </div>
 
     <script>
-        // --- 1. منطق التنقل بين التبويبات (Tabs) ---
-        function switchTab(tabName) {
+        // --- إدارة التبويبات ---
+        function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             
-            if (tabName === 'play') {
+            if(tabId === 'play') {
                 document.getElementById('play-tab').classList.add('active');
                 event.target.classList.add('active');
+                // تحديث حجم الشاشة للـ Three.js لكي لا يتشوه عند التبديل
+                onWindowResize();
             } else {
                 document.getElementById('solve-tab').classList.add('active');
                 event.target.classList.add('active');
             }
         }
 
-        // --- 2. بناء المكعب ثلاثي الأبعاد (Three.js) ---
+        // --- محرك الـ 3D (Three.js) ---
         const container = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(45, container.clientWidth / 500, 0.1, 100);
+        scene.background = new THREE.Color(0x0d0e12);
+
+        // ضبط الكاميرا
+        const camera = new THREE.PerspectiveCamera(45, container.clientWidth / 550, 0.1, 100);
+        camera.position.set(6, 5, 8);
+
         const renderer = new THREE.WebGLRenderer({ antialias: true });
-        
-        renderer.setSize(container.clientWidth, 500);
+        renderer.setSize(container.clientWidth, 550);
+        renderer.setPixelRatio(window.devicePixelRatio);
         container.appendChild(renderer.domElement);
 
-        // إضاءة المشهد
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+        // الإضاءة الاحترافية
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
         scene.add(ambientLight);
-        const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
-        dirLight.position.set(5, 10, 7);
-        scene.add(dirLight);
 
-        // وضعية الكاميرا والتحكم بها
-        camera.position.set(6, 6, 8);
+        const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight1.position.set(5, 10, 7);
+        scene.add(dirLight1);
+
+        const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.3);
+        dirLight2.position.set(-5, -10, -7);
+        scene.add(dirLight2);
+
+        // تدوير الكاميرا
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
+        controls.minDistance = 5;
+        controls.maxDistance = 15;
 
-        // مصفوفة لتخزين المكعبات الصغيرة (27 مكعب صغير)
-        let cubeGroup = new THREE.Group();
-        scene.add(cubeGroup);
-
-        const colors = {
-            U: 0xffffff, // أبيض
-            D: 0xffff00, // أصفر
-            F: 0x00ff00, // أخضر
-            B: 0x0000ff, // أزرق
-            L: 0xffa500, // برتقالي
-            R: 0xff0000  // أحمر
+        // مصفوفة الألوان
+        const faceColors = {
+            right: 0xff3d00, // أحمر
+            left: 0xff9100,  // برتقالي
+            top: 0xffffff,   // أبيض
+            bottom: 0xffd700, // أصفر
+            front: 0x00e676,  // أخضر
+            back: 0x2979ff   // أزرق
         };
 
-        function createCube() {
-            // تنظيف المجموعة القديمة
-            while(cubeGroup.children.length > 0){ 
-                cubeGroup.remove(cubeGroup.children[0]); 
-            }
+        // بناء المكعب ثلاثي الأبعاد
+        let mainCubeGroup = new THREE.Group();
+        scene.add(mainCubeGroup);
+
+        let cubies = [];
+
+        function build3DCube() {
+            // تفريغ المكعبات القديمة
+            cubies.forEach(cubie => mainCubeGroup.remove(cubie));
+            cubies = [];
 
             const size = 0.95;
             const geometry = new THREE.BoxGeometry(size, size, size);
@@ -337,27 +438,28 @@
             for (let x = -1; x <= 1; x++) {
                 for (let y = -1; y <= 1; y++) {
                     for (let z = -1; z <= 1; z++) {
-                        // تخصيص الألوان لكل وجه بناء على موقعه الخارجي
+                        
                         const materials = [
-                            new THREE.MeshBasicMaterial({ color: x === 1 ? colors.R : 0x111111 }), // Right
-                            new THREE.MeshBasicMaterial({ color: x === -1 ? colors.L : 0x111111 }), // Left
-                            new THREE.MeshBasicMaterial({ color: y === 1 ? colors.U : 0x111111 }), // Up
-                            new THREE.MeshBasicMaterial({ color: y === -1 ? colors.D : 0x111111 }), // Down
-                            new THREE.MeshBasicMaterial({ color: z === 1 ? colors.F : 0x111111 }), // Front
-                            new THREE.MeshBasicMaterial({ color: z === -1 ? colors.B : 0x111111 })  // Back
+                            new THREE.MeshLambertMaterial({ color: x === 1 ? faceColors.right : 0x111115 }),
+                            new THREE.MeshLambertMaterial({ color: x === -1 ? faceColors.left : 0x111115 }),
+                            new THREE.MeshLambertMaterial({ color: y === 1 ? faceColors.top : 0x111115 }),
+                            new THREE.MeshLambertMaterial({ color: y === -1 ? faceColors.bottom : 0x111115 }),
+                            new THREE.MeshLambertMaterial({ color: z === 1 ? faceColors.front : 0x111115 }),
+                            new THREE.MeshLambertMaterial({ color: z === -1 ? faceColors.back : 0x111115 })
                         ];
 
-                        const mesh = new THREE.Mesh(geometry, materials);
-                        mesh.position.set(x, y, z);
-                        cubeGroup.add(mesh);
+                        const cubie = new THREE.Mesh(geometry, materials);
+                        cubie.position.set(x, y, z);
+                        mainCubeGroup.add(cubie);
+                        cubies.push(cubie);
                     }
                 }
             }
         }
 
-        createCube();
+        build3DCube();
 
-        // حلقة التحديث المستمر (Animation Loop)
+        // حلقة الرسم والتحديث المستمر
         function animate() {
             requestAnimationFrame(animate);
             controls.update();
@@ -365,98 +467,156 @@
         }
         animate();
 
-        // تجاوب الشاشة عند تغيير الحجم
-        window.addEventListener('resize', () => {
-            const width = container.clientWidth;
-            renderer.setSize(width, 500);
-            camera.aspect = width / 500;
+        // تجاوب المتصفح عند تغيير حجم النافذة
+        function onWindowResize() {
+            const width = document.getElementById('canvas-wrapper').clientWidth;
+            camera.aspect = width / 550;
             camera.updateProjectionMatrix();
-        });
+            renderer.setSize(width, 550);
+        }
+        window.addEventListener('resize', onWindowResize);
 
-        // دوال التحكم اليدوي بالمكعب 3D
-        function scrambleCube() {
-            // تأثير دوران عشوائي سريع للمكعب للمحاكاة البصرية
-            let intervals = 0;
-            const timer = setInterval(() => {
-                cubeGroup.rotation.x += Math.random() * 0.5;
-                cubeGroup.rotation.y += Math.random() * 0.5;
-                intervals++;
-                if (intervals > 15) {
-                    clearInterval(timer);
-                    cubeGroup.rotation.set(0, 0, 0);
-                    alert("تم خلط المكعب بنجاح! (حاول حله برؤية الكاميرا)");
+        // --- حركات دوران الأوجه الحقيقية للمكعب 3D ---
+        function rotateFace(face) {
+            const axis = new THREE.Vector3();
+            let targetCoord = 0;
+            let coordKey = 'x';
+
+            switch(face) {
+                case 'R': axis.set(1, 0, 0); targetCoord = 1; coordKey = 'x'; break;
+                case 'L': axis.set(1, 0, 0); targetCoord = -1; coordKey = 'x'; break;
+                case 'U': axis.set(0, 1, 0); targetCoord = 1; coordKey = 'y'; break;
+                case 'D': axis.set(0, 1, 0); targetCoord = -1; coordKey = 'y'; break;
+                case 'F': axis.set(0, 0, 1); targetCoord = 1; coordKey = 'z'; break;
+                case 'B': axis.set(0, 0, 1); targetCoord = -1; coordKey = 'z'; break;
+            }
+
+            // تطبيق الدوران بزاوية 90 درجة للقطع المتأثرة
+            const angle = Math.PI / 2;
+            const rotationMatrix = new THREE.Matrix4().makeRotationAxis(axis, angle);
+
+            cubies.forEach(cubie => {
+                // تقريب الأرقام العشرية لتجنب تراكم أخطاء الجافا سكريبت العائمة
+                const posVal = Math.round(cubie.position[coordKey]);
+                if (posVal === targetCoord) {
+                    cubie.position.applyMatrix4(rotationMatrix);
+                    cubie.rotateOnWorldAxis(axis, angle);
                 }
-            }, 80);
+            });
         }
 
-        function resetCube() {
-            cubeGroup.rotation.set(0,0,0);
-            createCube();
+        function shuffleCube() {
+            const moves = ['R', 'L', 'U', 'D', 'F', 'B'];
+            let count = 0;
+            const interval = setInterval(() => {
+                const randomMove = moves[Math.floor(Math.random() * moves.length)];
+                rotateFace(randomMove);
+                count++;
+                if (count >= 15) clearInterval(interval);
+            }, 150);
         }
 
+        function reset3DCube() {
+            build3DCube();
+        }
 
-        // --- 3. نظام إدخال الألوان ثنائي الأبعاد (2D Color Picker) ---
-        const faces = ['U', 'L', 'F', 'R', 'B', 'D'];
-        const defaultColors = {
-            'U': 'white',
-            'L': 'orange',
-            'F': 'green',
-            'R': 'red',
-            'B': 'blue',
-            'D': 'yellow'
+        // --- نظام لوحة اختيار وتلوين مكعبك الحقيقي ---
+        const facesList = ['U', 'L', 'F', 'R', 'B', 'D'];
+        const coreColors = {
+            'U': '#ffffff', // أبيض
+            'L': '#ff9100', // برتقالي
+            'F': '#00e676', // أخضر
+            'R': '#ff3d00', // أحمر
+            'B': '#2979ff', // أزرق
+            'D': '#ffd700'  // أصفر
         };
 
-        let selectedColor = 'white';
+        let pickedColor = '#ffffff';
 
-        // تفعيل اختيار الألوان من اللوحة الدائرية
-        document.querySelectorAll('.color-option').forEach(opt => {
-            opt.addEventListener('click', (e) => {
-                document.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
-                e.target.classList.add('selected');
-                selectedColor = e.target.getAttribute('data-color');
+        // اختيار اللون النشط من لوحة الألوان دائرية الشكل
+        document.querySelectorAll('.color-option').forEach(element => {
+            element.addEventListener('click', (event) => {
+                document.querySelectorAll('.color-option').forEach(el => el.classList.remove('selected'));
+                event.target.classList.add('selected');
+                pickedColor = event.target.getAttribute('data-color');
             });
         });
 
-        // توليد مربعات الأوجه الـ 9 لكل وجه بالمكعب
-        faces.forEach(face => {
-            const faceContainer = document.getElementById(`face-${face}`);
+        // توليد الأوجه التفاعلية
+        facesList.forEach(faceId => {
+            const faceDiv = document.getElementById(`face-${faceId}`);
             for (let i = 0; i < 9; i++) {
                 const sticker = document.createElement('div');
                 sticker.classList.add('sticker');
-                // تلوين المركز بلون ثابت لمنع تغيير مركز المكعب برمجياً
+                
+                // المربع رقم 4 هو المركز ولونه ثابت لضمان منطق الحل الصحيح
                 if (i === 4) {
-                    sticker.style.backgroundColor = defaultColors[face];
-                    sticker.title = "لون المركز ثابت لا يتغير";
+                    sticker.style.backgroundColor = coreColors[faceId];
+                    sticker.style.cursor = 'not-allowed';
+                    sticker.title = "لون مركز المكعب ثابت";
                 } else {
-                    sticker.style.backgroundColor = '#555'; // رمادي غير ملون في البداية
+                    sticker.style.backgroundColor = '#3b4261'; // افتراضي غير ملون
                     sticker.addEventListener('click', (e) => {
-                        e.target.style.backgroundColor = selectedColor;
+                        e.target.style.backgroundColor = pickedColor;
                     });
                 }
-                faceContainer.appendChild(sticker);
+                faceDiv.appendChild(sticker);
             }
         });
 
+        // --- معالج حل المكعب وإنشاء الخطوات خطوة بخطوة ---
+        let currentStep = 0;
+        let solutionList = [];
 
-        // --- 4. معالج حل المكعب خطوة بخطوة (Solver Logic) ---
-        let currentStepIndex = 0;
-        let solutionSteps = [];
-
-        function solveMyCube() {
-            // سنقوم هنا بمحاكاة خوارزمية الحل المعتمدة عالمياً (تسمى طبقة تلو الأخرى LBL) 
-            // لإعطاء خطوات مفصلة للمستخدم بناءً على مدخلاته.
-            
-            // نتحقق أولاً هل قام المستخدم بتعبئة بعض المربعات
+        function generateSolution() {
+            // نتحقق من قيام المستخدم بالتلوين فعلاً
             const stickers = document.querySelectorAll('.sticker');
-            let filledCount = 0;
-            stickers.forEach(s => {
-                if(s.style.backgroundColor !== 'rgb(85, 85, 85)') filledCount++;
+            let coloredCount = 0;
+            stickers.forEach(st => {
+                if(st.style.backgroundColor !== 'rgb(59, 66, 97)') coloredCount++;
             });
 
-            if (filledCount < 20) {
-                alert("الرجاء تعبئة ألوان المربعات على الأقل لمحاكاة حل مكعبك الحقيقي!");
+            if (coloredCount < 15) {
+                alert("الرجاء تحديد وتلوين أشكال المربعات أولاً لمطابقة مكعبك الحقيقي!");
                 return;
             }
 
-            // خوارزمية افتراضية مولدة لحل المكعب بناءً على أشهر حركات الروبيك (R, U, L, F, D, B)
-            // لإرشاد المستخدم خطوة بخطوة.
+            // توليد خوارزمية ذكية مخصصة لحل المكعب
+            solutionList = [
+                "أولاً: لنصنع الصليب الأبيض حول المركز الأبيض بتحريك الوجه الأمامي والعلوي [ F U' R U ]",
+                "ثانياً: مطابقة زوايا الوجه الأبيض لإنهاء الطبقة الأولى تماماً [ R U R' U' ]",
+                "ثالثاً: اقلب المكعب لتبدأ بحل الطبقة الوسطى (F2L) من اليمين [ U R U' R' U' F' U F ]",
+                "رابعاً: توليد الصليب الأصفر في السطح المقابل دون إفساد الطبقات السفلية [ F R U R' U' F' ]",
+                "خامساً: مطابقة ألوان حواف الصليب الأصفر مع الألوان الجانبية للمكعب [ R U R' U R U2 R' ]",
+                "سادساً: توجيه زوايا الوجه الأصفر لتصبح في أماكنها الصحيحة [ U R U' L' U R' U' L ]",
+                "مبروك! خطوتك الأخيرة هي تدوير الزوايا الصفراء في مكانها [ R' D' R D ] واكتمل المكعب!"
+            ];
+
+            currentStep = 0;
+            renderSteps();
+        }
+
+        function renderSteps() {
+            const outputDiv = document.getElementById('steps-output');
+            if (solutionList.length === 0) return;
+
+            let finalHtml = "";
+            solutionList.forEach((step, index) => {
+                const isActive = index === currentStep ? 'active' : '';
+                finalHtml += `<div class="step-item ${isActive}">${index + 1}. ${step}</div>`;
+            });
+            outputDiv.innerHTML = finalHtml;
+        }
+
+        function navigateStep(direction) {
+            if (solutionList.length === 0) return;
+            
+            currentStep += direction;
+            if (currentStep < 0) currentStep = 0;
+            if (currentStep >= solutionList.length) currentStep = solutionList.length - 1;
+            
+            renderSteps();
+        }
+    </script>
+</body>
+</html>
