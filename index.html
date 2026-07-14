@@ -3,620 +3,588 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rubik's Master - مكعب روبيك العالمي ثلاثي الأبعاد</title>
+    <title>استوديو الرسم الاحترافي</title>
     <style>
+        /* ستايل وتصميم الموقع */
         :root {
-            --bg-color: #0d0e12;
-            --panel-color: #161822;
-            --accent-color: #00f2fe;
-            --accent-glow: rgba(0, 242, 254, 0.4);
-            --text-color: #f1f2f6;
-            --border-radius: 16px;
+            --bg-color: #121214;
+            --sidebar-color: #1a1a1e;
+            --accent-color: #6366f1;
+            --accent-hover: #4f46e5;
+            --text-color: #f3f4f6;
+            --border-color: #2d2d34;
         }
 
-        body {
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+        }
+
+        body {
             background-color: var(--bg-color);
             color: var(--text-color);
-            overflow-x: hidden;
-        }
-
-        /* رأس الصفحة (Header) */
-        header {
-            background-color: var(--panel-color);
-            padding: 20px 40px;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #23273a;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        }
-
-        .logo {
-            font-size: 1.8rem;
-            font-weight: 800;
-            background: linear-gradient(45deg, #00f2fe, #4facfe);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: 1px;
-        }
-
-        .nav-tabs {
-            display: flex;
-            gap: 15px;
-        }
-
-        .tab-btn {
-            background: #1f2335;
-            color: var(--text-color);
-            border: 1px solid #3b4261;
-            padding: 12px 24px;
-            border-radius: 30px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .tab-btn.active {
-            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
-            color: #000;
-            font-weight: 700;
-            border-color: transparent;
-            box-shadow: 0 0 15px var(--accent-glow);
-        }
-
-        /* محتوى الموقع */
-        .container {
-            max-width: 1200px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
-
-        .tab-content {
-            display: none;
-            animation: fadeIn 0.5s ease-in-out forwards;
-        }
-
-        .tab-content.active {
-            display: grid;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* تصميم صفحة اللعب والـ 3D */
-        .play-grid {
-            grid-template-columns: 2fr 1fr;
-            gap: 30px;
-        }
-
-        @media (max-width: 900px) {
-            .play-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        #canvas-wrapper {
-            background-color: var(--panel-color);
-            border-radius: var(--border-radius);
-            height: 550px;
-            position: relative;
+            height: 100vh;
             overflow: hidden;
-            border: 1px solid #23273a;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
         }
 
-        #canvas-container {
-            width: 100%;
-            height: 100%;
-        }
-
+        /* شريط الأدوات الجانبي */
         .sidebar {
-            background-color: var(--panel-color);
-            padding: 25px;
-            border-radius: var(--border-radius);
-            border: 1px solid #23273a;
+            width: 320px;
+            background-color: var(--sidebar-color);
+            border-left: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
+            padding: 20px;
             gap: 20px;
+            overflow-y: auto;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.5);
+            z-index: 10;
         }
 
-        .btn {
-            background: #23273a;
-            color: var(--text-color);
-            border: 1px solid #3b4261;
-            padding: 14px 20px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 1rem;
-            transition: all 0.2s;
+        h2 {
+            font-size: 1.2rem;
+            text-align: center;
+            color: var(--accent-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 5px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 0.85rem;
+            color: #a1a1aa;
+        }
+
+        /* التحكم بالألوان والفرش */
+        .color-picker-wrapper {
             display: flex;
             align-items: center;
-            justify-content: center;
             gap: 10px;
         }
 
-        .btn:hover {
-            background: #2e344e;
-            border-color: var(--accent-color);
-            box-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
-            color: #000;
+        input[type="color"] {
+            -webkit-appearance: none;
             border: none;
-        }
-
-        .btn-primary:hover {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            box-shadow: 0 0 15px var(--accent-glow);
-        }
-
-        /* صفحة المدخلات والحل */
-        .solve-grid {
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
-        }
-
-        @media (max-width: 900px) {
-            .solve-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .palette {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 25px;
-            background: #1f2335;
-            padding: 15px;
-            border-radius: 50px;
-        }
-
-        .color-option {
-            width: 45px;
-            height: 45px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             cursor: pointer;
-            border: 3px solid #000;
+            background: none;
             transition: transform 0.2s;
         }
 
-        .color-option.selected {
-            transform: scale(1.2);
-            box-shadow: 0 0 15px #fff;
+        input[type="color"]:hover {
+            transform: scale(1.1);
         }
 
-        /* تخطيط الأوجه ثنائي الأبعاد */
-        .cube-layout {
-            display: grid;
-            grid-template-columns: repeat(4, 90px);
-            grid-template-rows: repeat(3, 90px);
-            gap: 15px;
-            justify-content: center;
-            background: #15161e;
-            padding: 30px;
-            border-radius: var(--border-radius);
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.6);
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
         }
 
-        .face {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: repeat(3, 1fr);
-            gap: 3px;
-            background: #111;
-            padding: 5px;
-            border-radius: 8px;
+        input[type="color"]::-webkit-color-swatch {
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
         }
 
-        .face-U { grid-column: 2; grid-row: 1; }
-        .face-L { grid-column: 1; grid-row: 2; }
-        .face-F { grid-column: 2; grid-row: 2; }
-        .face-R { grid-column: 3; grid-row: 2; }
-        .face-B { grid-column: 4; grid-row: 2; }
-        .face-D { grid-column: 2; grid-row: 3; }
-
-        .sticker {
+        select, input[type="range"], input[type="text"] {
             width: 100%;
-            height: 100%;
-            background-color: #3b4261;
-            border-radius: 4px;
+            background-color: #27272a;
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            outline: none;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        select:focus, input[type="text"]:focus {
+            border-color: var(--accent-color);
+        }
+
+        /* الأزرار وتأثيراتها الحركية */
+        .btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: all 0.2s;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
-        .sticker:hover {
-            transform: scale(1.08);
-            box-shadow: 0 0 8px rgba(255,255,255,0.5);
+        .btn:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
         }
 
-        /* لوحة خطوات الحل */
-        .steps-container {
-            background-color: var(--panel-color);
-            padding: 30px;
-            border-radius: var(--border-radius);
-            border: 1px solid #23273a;
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-danger {
+            background-color: #ef4444;
+        }
+        .btn-danger:hover {
+            background-color: #dc2626;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: #3f3f46;
+        }
+        .btn-secondary:hover {
+            background-color: #52525b;
+            box-shadow: 0 4px 12px rgba(82, 82, 91, 0.3);
+        }
+
+        /* قائمة الصفحات (الأوراق) */
+        .pages-section {
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+        }
+
+        .pages-list {
+            list-style: none;
+            margin-top: 10px;
+            max-height: 150px;
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 5px;
         }
 
-        .steps-box {
-            background-color: #0d0e12;
-            border-radius: 10px;
-            padding: 20px;
-            min-height: 200px;
-            font-size: 1.1rem;
-            line-height: 1.8;
-            border: 1px solid #1f2335;
-        }
-
-        .step-item {
-            padding: 10px 15px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            transition: background 0.3s;
-        }
-
-        .step-item.active {
-            background: rgba(0, 242, 254, 0.1);
-            border-left: 4px solid var(--accent-color);
-            color: var(--accent-color);
-            font-weight: bold;
-        }
-
-        .arrow-controls {
+        .page-item {
+            background-color: #27272a;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
             display: flex;
-            gap: 15px;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            transition: background 0.2s;
+            border: 1px solid transparent;
         }
 
-        .arrow-controls .btn {
-            flex: 1;
+        .page-item:hover {
+            background-color: #3f3f46;
+        }
+
+        .page-item.active {
+            border-color: var(--accent-color);
+            background-color: rgba(99, 102, 241, 0.1);
+        }
+
+        .delete-page-btn {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        /* منطقة الرسم الرئيسية */
+        .canvas-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background-image: radial-gradient(#2d2d34 1px, transparent 1px);
+            background-size: 20px 20px;
+            padding: 20px;
+        }
+
+        .canvas-container {
+            background-color: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: popIn 0.5s ease-out;
+        }
+
+        canvas {
+            display: block;
+            cursor: crosshair;
+        }
+
+        /* تأثيرات حركية (Animations) */
+        @keyframes popIn {
+            from {
+                transform: scale(0.9) translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .canvas-switch-animation {
+            animation: switchPage 0.4s ease-in-out;
+        }
+
+        @keyframes switchPage {
+            0% { transform: scale(1) rotateY(0deg); opacity: 1; }
+            50% { transform: scale(0.95) rotateY(90deg); opacity: 0.5; }
+            100% { transform: scale(1) rotateY(0deg); opacity: 1; }
+        }
+
+        /* مؤشر الفرشاة العائم */
+        .brush-preview {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+            position: absolute;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            display: none;
+            z-index: 100;
         }
     </style>
-    <!-- استيراد مكتبات Three.js الآمنة والحديثة -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
 <body>
 
-    <header>
-        <div class="logo">RUBIK'S MASTER 3D</div>
-        <div class="nav-tabs">
-            <button class="tab-btn active" onclick="switchTab('play')">🎮 العب وتفاعل</button>
-            <button class="tab-btn" onclick="switchTab('solve')">🧩 حل مكعبك الحقيقي</button>
+    <!-- شريط الأدوات والتحكم -->
+    <div class="sidebar">
+        <h2>استوديو الإبداع</h2>
+
+        <!-- الألوان والشفافية -->
+        <div class="control-group">
+            <label>لون الرسم / درجة اللون</label>
+            <div class="color-picker-wrapper">
+                <input type="color" id="colorPicker" value="#6366f1">
+                <input type="range" id="opacity" min="1" max="100" value="100">
+                <span id="opacityVal">100%</span>
+            </div>
         </div>
-    </header>
 
-    <div class="container">
-        
-        <!-- 1. تبويب اللعب التفاعلي -->
-        <main id="play-tab" class="tab-content play-grid active">
-            <div id="canvas-wrapper">
-                <div id="canvas-container"></div>
+        <!-- نوع الفرشاة وأسلوب الألوان -->
+        <div class="control-group">
+            <label>نوع الفرشاة (نوع الألوان)</label>
+            <select id="brushType">
+                <option value="solid">ألوان عادية (قلم صلب)</option>
+                <option value="watercolor">ألوان مائية (دمج لطيف)</option>
+                <option value="pencil">قلم رصاص (خشن ومظلل)</option>
+                <option value="eraser">الممحاة</option>
+            </select>
+        </div>
+
+        <!-- التظليل والنعومة -->
+        <div class="control-group">
+            <label>مستوى التظليل (ضبابية الفرشاة)</label>
+            <input type="range" id="shadowBlur" min="0" max="30" value="0">
+            <span id="shadowVal">بدون تظليل</span>
+        </div>
+
+        <!-- حجم وحجم الفرشاة -->
+        <div class="control-group">
+            <label>عرض الفرشاة / الممحاة</label>
+            <input type="range" id="lineWidth" min="1" max="80" value="10">
+            <span id="widthVal">10px</span>
+        </div>
+
+        <button class="btn btn-secondary" id="clearCanvas">مسح الورقة الحالية</button>
+        <button class="btn" id="downloadImage">حفظ الرسمة كـ PNG</button>
+
+        <!-- إدارة الأوراق الجديدة -->
+        <div class="pages-section">
+            <label style="font-weight: bold; color: white;">إدارة الأوراق والمشاريع</label>
+            <div class="control-group" style="margin-top: 10px; flex-direction: row; gap: 5px;">
+                <input type="text" id="newPageName" placeholder="اسم الورقة..." style="padding: 8px;">
+                <button class="btn" id="addPageBtn" style="padding: 8px 12px;">+</button>
             </div>
-            <div class="sidebar">
-                <h2>لوحة التحكم ثلاثية الأبعاد</h2>
-                <p style="color: #a9b1d6; font-size: 0.95rem; line-height: 1.5;">
-                    اسحب الماوس لتدوير زاوية العرض. استخدم الأزرار لتطبيق حركات دوران حقيقية على المكعب ثلاثي الأبعاد!
-                </p>
-                <button class="btn btn-primary" onclick="shuffleCube()">🔀 خلط عشوائي للمكعب</button>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <button class="btn" onclick="rotateFace('R')">R (اليمين)</button>
-                    <button class="btn" onclick="rotateFace('L')">L (اليسار)</button>
-                    <button class="btn" onclick="rotateFace('U')">U (الأعلى)</button>
-                    <button class="btn" onclick="rotateFace('D')">D (الأسفل)</button>
-                    <button class="btn" onclick="rotateFace('F')">F (الأمام)</button>
-                    <button class="btn" onclick="rotateFace('B')">B (الخلف)</button>
-                </div>
-                <button class="btn" onclick="reset3DCube()" style="border-color: #f7768e; color: #f7768e;">♻️ إعادة تعيين بالكامل</button>
-            </div>
-        </main>
-
-        <!-- 2. تبويب إدخال الألوان والحل الذكي -->
-        <main id="solve-tab" class="tab-content solve-grid">
-            <div>
-                <h2>موزع الألوان التفاعلي</h2>
-                <p style="color: #a9b1d6; margin-bottom: 20px;">اختر اللون من الأسفل ثم اضغط على المربعات لتطابق مكعبك الحقيقي:</p>
-                
-                <div class="palette">
-                    <div class="color-option selected" style="background-color: #ffffff;" data-color="#ffffff"></div>
-                    <div class="color-option" style="background-color: #ffd700;" data-color="#ffd700"></div>
-                    <div class="color-option" style="background-color: #00e676;" data-color="#00e676"></div>
-                    <div class="color-option" style="background-color: #2979ff;" data-color="#2979ff"></div>
-                    <div class="color-option" style="background-color: #ff3d00;" data-color="#ff3d00"></div>
-                    <div class="color-option" style="background-color: #ff9100;" data-color="#ff9100"></div>
-                </div>
-
-                <div class="cube-layout">
-                    <div class="face face-U" id="face-U"></div>
-                    <div class="face face-L" id="face-L"></div>
-                    <div class="face face-F" id="face-F"></div>
-                    <div class="face face-R" id="face-R"></div>
-                    <div class="face face-B" id="face-B"></div>
-                    <div class="face face-D" id="face-D"></div>
-                </div>
-            </div>
-
-            <div class="steps-container">
-                <h2>دليل الحل الموجه</h2>
-                <button class="btn btn-primary" onclick="generateSolution()">🚀 احسب خطوات الحل الآن</button>
-                <div class="steps-box" id="steps-output">
-                    قم بتلوين الأوجه ثم انقر على زر البدء لترى الخطوات واحدة تلو الأخرى هنا...
-                </div>
-                <div class="arrow-controls">
-                    <button class="btn" onclick="navigateStep(-1)">◀ السابق</button>
-                    <button class="btn" onclick="navigateStep(1)">التالي ▶</button>
-                </div>
-            </div>
-        </main>
-
+            <ul class="pages-list" id="pagesList">
+                <!-- الأوراق المضافة ستظهر هنا ديناميكياً -->
+            </ul>
+        </div>
     </div>
 
+    <!-- مساحة الرسم الكانفاس -->
+    <div class="canvas-area">
+        <div class="canvas-container" id="canvasContainer">
+            <canvas id="paintCanvas" width="800" height="600"></canvas>
+        </div>
+    </div>
+
+    <!-- مؤشر الفرشاة التفاعلي -->
+    <div class="brush-preview" id="brushPreview"></div>
+
     <script>
-        // --- إدارة التبويبات ---
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        const canvas = document.getElementById('paintCanvas');
+        const ctx = canvas.getContext('2d');
+        const container = document.getElementById('canvasContainer');
+        const colorPicker = document.getElementById('colorPicker');
+        const opacityRange = document.getElementById('opacity');
+        const opacityVal = document.getElementById('opacityVal');
+        const brushType = document.getElementById('brushType');
+        const shadowRange = document.getElementById('shadowBlur');
+        const shadowVal = document.getElementById('shadowVal');
+        const lineWidthRange = document.getElementById('lineWidth');
+        const widthVal = document.getElementById('widthVal');
+        const clearBtn = document.getElementById('clearCanvas');
+        const downloadBtn = document.getElementById('downloadImage');
+        const brushPreview = document.getElementById('brushPreview');
+
+        const newPageNameInput = document.getElementById('newPageName');
+        const addPageBtn = document.getElementById('addPageBtn');
+        const pagesList = document.getElementById('pagesList');
+
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+
+        // نظام إدارة الأوراق المتعددة وحفظها تلقائياً
+        let pages = {
+            "اللوحة الرئيسية": canvas.toDataURL()
+        };
+        let currentPageName = "اللوحة الرئيسية";
+
+        // إعداد الكانفاس الأولي بخلفية بيضاء
+        function clearCanvasToWhite() {
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        clearCanvasToWhite();
+        pages["اللوحة الرئيسية"] = canvas.toDataURL(); // حفظ اللوحة الفارغة الأولى
+
+        // تحديث قائمة الأوراق في الواجهة
+        function renderPagesList() {
+            pagesList.innerHTML = '';
+            Object.keys(pages).forEach(name => {
+                const li = document.createElement('li');
+                li.className = `page-item ${name === currentPageName ? 'active' : ''}`;
+                li.innerHTML = `
+                    <span class="page-title">${name}</span>
+                    ${name !== "اللوحة الرئيسية" ? `<button class="delete-page-btn" onclick="deletePage(event, '${name}')">🗑️</button>` : ''}
+                `;
+                li.addEventListener('click', () => switchPage(name));
+                pagesList.appendChild(li);
+            });
+        }
+
+        // التبديل بين الأوراق مع تأثير حركي (Animation)
+        function switchPage(name) {
+            if (name === currentPageName) return;
             
-            if(tabId === 'play') {
-                document.getElementById('play-tab').classList.add('active');
-                event.target.classList.add('active');
-                // تحديث حجم الشاشة للـ Three.js لكي لا يتشوه عند التبديل
-                onWindowResize();
-            } else {
-                document.getElementById('solve-tab').classList.add('active');
-                event.target.classList.add('active');
+            // حفظ حالة الصفحة الحالية أولاً
+            pages[currentPageName] = canvas.toDataURL();
+
+            container.classList.add('canvas-switch-animation');
+            
+            setTimeout(() => {
+                currentPageName = name;
+                const img = new Image();
+                img.onload = function() {
+                    clearCanvasToWhite();
+                    ctx.drawImage(img, 0, 0);
+                };
+                img.src = pages[name] || canvas.toDataURL();
+                renderPagesList();
+            }, 200);
+
+            setTimeout(() => {
+                container.classList.remove('canvas-switch-animation');
+            }, 400);
+        }
+
+        // إضافة ورقة جديدة وتسميتها
+        addPageBtn.addEventListener('click', () => {
+            const name = newPageNameInput.value.trim();
+            if (!name) {
+                alert("يرجى إدخال اسم للورقة الجديدة!");
+                return;
             }
-        }
-
-        // --- محرك الـ 3D (Three.js) ---
-        const container = document.getElementById('canvas-container');
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x0d0e12);
-
-        // ضبط الكاميرا
-        const camera = new THREE.PerspectiveCamera(45, container.clientWidth / 550, 0.1, 100);
-        camera.position.set(6, 5, 8);
-
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(container.clientWidth, 550);
-        renderer.setPixelRatio(window.devicePixelRatio);
-        container.appendChild(renderer.domElement);
-
-        // الإضاءة الاحترافية
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-        scene.add(ambientLight);
-
-        const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
-        dirLight1.position.set(5, 10, 7);
-        scene.add(dirLight1);
-
-        const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.3);
-        dirLight2.position.set(-5, -10, -7);
-        scene.add(dirLight2);
-
-        // تدوير الكاميرا
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
-        controls.minDistance = 5;
-        controls.maxDistance = 15;
-
-        // مصفوفة الألوان
-        const faceColors = {
-            right: 0xff3d00, // أحمر
-            left: 0xff9100,  // برتقالي
-            top: 0xffffff,   // أبيض
-            bottom: 0xffd700, // أصفر
-            front: 0x00e676,  // أخضر
-            back: 0x2979ff   // أزرق
-        };
-
-        // بناء المكعب ثلاثي الأبعاد
-        let mainCubeGroup = new THREE.Group();
-        scene.add(mainCubeGroup);
-
-        let cubies = [];
-
-        function build3DCube() {
-            // تفريغ المكعبات القديمة
-            cubies.forEach(cubie => mainCubeGroup.remove(cubie));
-            cubies = [];
-
-            const size = 0.95;
-            const geometry = new THREE.BoxGeometry(size, size, size);
-
-            for (let x = -1; x <= 1; x++) {
-                for (let y = -1; y <= 1; y++) {
-                    for (let z = -1; z <= 1; z++) {
-                        
-                        const materials = [
-                            new THREE.MeshLambertMaterial({ color: x === 1 ? faceColors.right : 0x111115 }),
-                            new THREE.MeshLambertMaterial({ color: x === -1 ? faceColors.left : 0x111115 }),
-                            new THREE.MeshLambertMaterial({ color: y === 1 ? faceColors.top : 0x111115 }),
-                            new THREE.MeshLambertMaterial({ color: y === -1 ? faceColors.bottom : 0x111115 }),
-                            new THREE.MeshLambertMaterial({ color: z === 1 ? faceColors.front : 0x111115 }),
-                            new THREE.MeshLambertMaterial({ color: z === -1 ? faceColors.back : 0x111115 })
-                        ];
-
-                        const cubie = new THREE.Mesh(geometry, materials);
-                        cubie.position.set(x, y, z);
-                        mainCubeGroup.add(cubie);
-                        cubies.push(cubie);
-                    }
-                }
-            }
-        }
-
-        build3DCube();
-
-        // حلقة الرسم والتحديث المستمر
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update();
-            renderer.render(scene, camera);
-        }
-        animate();
-
-        // تجاوب المتصفح عند تغيير حجم النافذة
-        function onWindowResize() {
-            const width = document.getElementById('canvas-wrapper').clientWidth;
-            camera.aspect = width / 550;
-            camera.updateProjectionMatrix();
-            renderer.setSize(width, 550);
-        }
-        window.addEventListener('resize', onWindowResize);
-
-        // --- حركات دوران الأوجه الحقيقية للمكعب 3D ---
-        function rotateFace(face) {
-            const axis = new THREE.Vector3();
-            let targetCoord = 0;
-            let coordKey = 'x';
-
-            switch(face) {
-                case 'R': axis.set(1, 0, 0); targetCoord = 1; coordKey = 'x'; break;
-                case 'L': axis.set(1, 0, 0); targetCoord = -1; coordKey = 'x'; break;
-                case 'U': axis.set(0, 1, 0); targetCoord = 1; coordKey = 'y'; break;
-                case 'D': axis.set(0, 1, 0); targetCoord = -1; coordKey = 'y'; break;
-                case 'F': axis.set(0, 0, 1); targetCoord = 1; coordKey = 'z'; break;
-                case 'B': axis.set(0, 0, 1); targetCoord = -1; coordKey = 'z'; break;
-            }
-
-            // تطبيق الدوران بزاوية 90 درجة للقطع المتأثرة
-            const angle = Math.PI / 2;
-            const rotationMatrix = new THREE.Matrix4().makeRotationAxis(axis, angle);
-
-            cubies.forEach(cubie => {
-                // تقريب الأرقام العشرية لتجنب تراكم أخطاء الجافا سكريبت العائمة
-                const posVal = Math.round(cubie.position[coordKey]);
-                if (posVal === targetCoord) {
-                    cubie.position.applyMatrix4(rotationMatrix);
-                    cubie.rotateOnWorldAxis(axis, angle);
-                }
-            });
-        }
-
-        function shuffleCube() {
-            const moves = ['R', 'L', 'U', 'D', 'F', 'B'];
-            let count = 0;
-            const interval = setInterval(() => {
-                const randomMove = moves[Math.floor(Math.random() * moves.length)];
-                rotateFace(randomMove);
-                count++;
-                if (count >= 15) clearInterval(interval);
-            }, 150);
-        }
-
-        function reset3DCube() {
-            build3DCube();
-        }
-
-        // --- نظام لوحة اختيار وتلوين مكعبك الحقيقي ---
-        const facesList = ['U', 'L', 'F', 'R', 'B', 'D'];
-        const coreColors = {
-            'U': '#ffffff', // أبيض
-            'L': '#ff9100', // برتقالي
-            'F': '#00e676', // أخضر
-            'R': '#ff3d00', // أحمر
-            'B': '#2979ff', // أزرق
-            'D': '#ffd700'  // أصفر
-        };
-
-        let pickedColor = '#ffffff';
-
-        // اختيار اللون النشط من لوحة الألوان دائرية الشكل
-        document.querySelectorAll('.color-option').forEach(element => {
-            element.addEventListener('click', (event) => {
-                document.querySelectorAll('.color-option').forEach(el => el.classList.remove('selected'));
-                event.target.classList.add('selected');
-                pickedColor = event.target.getAttribute('data-color');
-            });
-        });
-
-        // توليد الأوجه التفاعلية
-        facesList.forEach(faceId => {
-            const faceDiv = document.getElementById(`face-${faceId}`);
-            for (let i = 0; i < 9; i++) {
-                const sticker = document.createElement('div');
-                sticker.classList.add('sticker');
-                
-                // المربع رقم 4 هو المركز ولونه ثابت لضمان منطق الحل الصحيح
-                if (i === 4) {
-                    sticker.style.backgroundColor = coreColors[faceId];
-                    sticker.style.cursor = 'not-allowed';
-                    sticker.title = "لون مركز المكعب ثابت";
-                } else {
-                    sticker.style.backgroundColor = '#3b4261'; // افتراضي غير ملون
-                    sticker.addEventListener('click', (e) => {
-                        e.target.style.backgroundColor = pickedColor;
-                    });
-                }
-                faceDiv.appendChild(sticker);
-            }
-        });
-
-        // --- معالج حل المكعب وإنشاء الخطوات خطوة بخطوة ---
-        let currentStep = 0;
-        let solutionList = [];
-
-        function generateSolution() {
-            // نتحقق من قيام المستخدم بالتلوين فعلاً
-            const stickers = document.querySelectorAll('.sticker');
-            let coloredCount = 0;
-            stickers.forEach(st => {
-                if(st.style.backgroundColor !== 'rgb(59, 66, 97)') coloredCount++;
-            });
-
-            if (coloredCount < 15) {
-                alert("الرجاء تحديد وتلوين أشكال المربعات أولاً لمطابقة مكعبك الحقيقي!");
+            if (pages[name]) {
+                alert("هذا الاسم موجود بالفعل!");
                 return;
             }
 
-            // توليد خوارزمية ذكية مخصصة لحل المكعب
-            solutionList = [
-                "أولاً: لنصنع الصليب الأبيض حول المركز الأبيض بتحريك الوجه الأمامي والعلوي [ F U' R U ]",
-                "ثانياً: مطابقة زوايا الوجه الأبيض لإنهاء الطبقة الأولى تماماً [ R U R' U' ]",
-                "ثالثاً: اقلب المكعب لتبدأ بحل الطبقة الوسطى (F2L) من اليمين [ U R U' R' U' F' U F ]",
-                "رابعاً: توليد الصليب الأصفر في السطح المقابل دون إفساد الطبقات السفلية [ F R U R' U' F' ]",
-                "خامساً: مطابقة ألوان حواف الصليب الأصفر مع الألوان الجانبية للمكعب [ R U R' U R U2 R' ]",
-                "سادساً: توجيه زوايا الوجه الأصفر لتصبح في أماكنها الصحيحة [ U R U' L' U R' U' L ]",
-                "مبروك! خطوتك الأخيرة هي تدوير الزوايا الصفراء في مكانها [ R' D' R D ] واكتمل المكعب!"
-            ];
+            // حفظ الصفحة الحالية أولاً
+            pages[currentPageName] = canvas.toDataURL();
 
-            currentStep = 0;
-            renderSteps();
-        }
-
-        function renderSteps() {
-            const outputDiv = document.getElementById('steps-output');
-            if (solutionList.length === 0) return;
-
-            let finalHtml = "";
-            solutionList.forEach((step, index) => {
-                const isActive = index === currentStep ? 'active' : '';
-                finalHtml += `<div class="step-item ${isActive}">${index + 1}. ${step}</div>`;
-            });
-            outputDiv.innerHTML = finalHtml;
-        }
-
-        function navigateStep(direction) {
-            if (solutionList.length === 0) return;
+            // إنشاء الورقة الجديدة
+            currentPageName = name;
+            clearCanvasToWhite();
+            pages[name] = canvas.toDataURL();
             
-            currentStep += direction;
-            if (currentStep < 0) currentStep = 0;
-            if (currentStep >= solutionList.length) currentStep = solutionList.length - 1;
+            newPageNameInput.value = '';
+            renderPagesList();
             
-            renderSteps();
+            // تأثير حركي لطيف للورقة الجديدة
+            container.style.animation = 'none';
+            setTimeout(() => { container.style.animation = 'popIn 0.5s ease-out'; }, 10);
+        });
+
+        // حذف ورقة رسم
+        window.deletePage = function(event, name) {
+            event.stopPropagation();
+            if (confirm(`هل أنت متأكد من حذف ورقة "${name}"؟`)) {
+                delete pages[name];
+                if (currentPageName === name) {
+                    switchPage("اللوحة الرئيسية");
+                } else {
+                    renderPagesList();
+                }
+            }
+        };
+
+        // تعديل خصائص الفرشاة قبل الرسم بناءً على الخيارات المحددة
+        function applyBrushSettings() {
+            const color = colorPicker.value;
+            const opacity = opacityRange.value / 100;
+            const size = lineWidthRange.value;
+            const shadow = shadowRange.value;
+
+            ctx.lineWidth = size;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            // تحويل اللون لـ RGBA للتحكم بالشفافية
+            const r = parseInt(color.slice(1, 3), 16);
+            const g = parseInt(color.slice(3, 5), 16);
+            const b = parseInt(color.slice(5, 7), 16);
+
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+
+            const selectedStyle = brushType.value;
+
+            if (selectedStyle === 'eraser') {
+                ctx.strokeStyle = '#ffffff'; // الممحاة تمسح باللون الأبيض
+                ctx.globalAlpha = 1.0;
+            } else if (selectedStyle === 'solid') {
+                ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+                ctx.globalAlpha = 1.0;
+                if (shadow > 0) {
+                    ctx.shadowColor = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+                    ctx.shadowBlur = shadow;
+                }
+            } else if (selectedStyle === 'watercolor') {
+                // ميزة الألوان المائية: تأثير تدرج مدمج وشفافية فائقة مع حواف ناعمة
+                ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${opacity * 0.15})`;
+                ctx.globalAlpha = 0.5;
+                ctx.shadowColor = `rgba(${r}, ${g}, ${b}, ${opacity * 0.3})`;
+                ctx.shadowBlur = size * 0.5; // التظليل يتناسب مع حجم الفرشاة للحصول على طابع مائي
+            } else if (selectedStyle === 'pencil') {
+                // ميزة قلم الرصاص: خطوط خشنة وتظليل متفرق
+                ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${opacity * 0.7})`;
+                ctx.globalAlpha = 0.8;
+                if (shadow > 0) {
+                    ctx.shadowColor = `rgba(${r}, ${g}, ${b}, ${opacity * 0.5})`;
+                    ctx.shadowBlur = shadow * 0.3;
+                }
+            }
         }
+
+        // حركة الرسم على الكانفاس
+        function draw(e) {
+            if (!isDrawing) return;
+
+            applyBrushSettings();
+
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+
+            [lastX, lastY] = [x, y];
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            lastX = e.clientX - rect.left;
+            lastY = e.clientY - rect.top;
+        });
+
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', () => {
+            isDrawing = false;
+            // حفظ التحديثات تلقائياً في الذاكرة المؤقتة للورقة النشطة
+            pages[currentPageName] = canvas.toDataURL();
+        });
+        canvas.addEventListener('mouseout', () => isDrawing = false);
+
+        // مسح الكانفاس الحالي
+        clearBtn.addEventListener('click', () => {
+            if (confirm("هل تريد مسح اللوحة الحالية والبدء من جديد؟")) {
+                clearCanvasToWhite();
+                pages[currentPageName] = canvas.toDataURL();
+            }
+        });
+
+        // حفظ وتحميل الصورة
+        downloadBtn.addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = `${currentPageName}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+
+        // تحديث نصوص مؤشرات الأرقام (الشفافية والحجم)
+        opacityRange.addEventListener('input', () => {
+            opacityVal.textContent = `${opacityRange.value}%`;
+        });
+
+        shadowRange.addEventListener('input', () => {
+            const val = shadowRange.value;
+            shadowVal.textContent = val == 0 ? 'بدون تظليل' : `${val}px`;
+        });
+
+        lineWidthRange.addEventListener('input', () => {
+            widthVal.textContent = `${lineWidthRange.value}px`;
+            updateBrushPreview();
+        });
+
+        colorPicker.addEventListener('input', updateBrushPreview);
+
+        // تحديث شكل مؤشر الماوس التفاعلي على لوحة الرسم
+        function updateBrushPreview() {
+            const size = lineWidthRange.value;
+            brushPreview.style.width = `${size}px`;
+            brushPreview.style.height = `${size}px`;
+            brushPreview.style.backgroundColor = brushType.value === 'eraser' ? '#ffffff' : colorPicker.value;
+        }
+
+        canvas.addEventListener('mouseenter', () => brushPreview.style.display = 'block');
+        canvas.addEventListener('mouseleave', () => brushPreview.style.display = 'none');
+        canvas.addEventListener('mousemove', (e) => {
+            brushPreview.style.left = `${e.clientX}px`;
+            brushPreview.style.top = `${e.clientY}px`;
+        });
+
+        brushType.addEventListener('change', updateBrushPreview);
+
+        // إنشاء القائمة الأولية عند تشغيل الموقع
+        renderPagesList();
+        updateBrushPreview();
     </script>
 </body>
 </html>
