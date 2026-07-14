@@ -3,18 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>استوديو الرسم المحترف v4 - نظام الطبقات والواجهة الحديثة</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;500;700;800&display=swap" rel="stylesheet">
+    <title>محمل الوسائط الذكي | تحميل من يوتيوب بجودة عالية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #09090b;
-            --panel-bg: rgba(22, 22, 28, 0.95);
-            --accent-color: #4f46e5;
-            --accent-hover: #6366f1;
-            --text-main: #f4f4f5;
-            --text-muted: #a1a1aa;
-            --border-color: rgba(255, 255, 255, 0.06);
-            --item-bg: #1c1c24;
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --accent-primary: #8b5cf6;
+            --accent-hover: #7c3aed;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: rgba(255, 255, 255, 0.08);
         }
 
         * {
@@ -22,720 +21,212 @@
             margin: 0;
             padding: 0;
             font-family: 'Cairo', sans-serif;
-            user-select: none;
         }
 
         body {
-            background-color: var(--bg-color);
+            background: var(--bg-gradient);
             color: var(--text-main);
+            min-height: 100vh;
             display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        /* زر إخفاء وإظهار القائمة الجانبية */
-        .toggle-sidebar-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            z-index: 100;
-            background-color: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            color: white;
-            width: 45px;
-            height: 45px;
-            border-radius: 12px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
             justify-content: center;
-            font-size: 1.3rem;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .toggle-sidebar-btn:hover {
-            background-color: var(--accent-color);
-            transform: scale(1.05);
+            align-items: center;
+            padding: 20px;
         }
 
-        /* القائمة الجانبية الفاخرة الجديدة */
-        .sidebar {
-            width: 360px;
-            background: var(--panel-bg);
-            backdrop-filter: blur(10px);
-            border-left: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            padding: 25px 20px;
-            gap: 18px;
-            overflow-y: auto;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 50;
-            box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+        /* حاوية الموقع الرئيسية */
+        .container {
+            width: 100%;
+            max-width: 650px;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 40px 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            text-align: center;
         }
 
-        .sidebar.hidden {
-            margin-right: -360px;
-            opacity: 0;
-            visibility: hidden;
-        }
-
-        .sidebar-header h2 {
-            font-size: 1.25rem;
+        .header h1 {
+            font-size: 2rem;
             font-weight: 800;
-            background: linear-gradient(to left, #818cf8, #4f46e5);
+            margin-bottom: 8px;
+            background: linear-gradient(to left, #a78bfa, #a855f7);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-align: center;
-            margin-bottom: 5px;
         }
 
-        .section-title {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+        .header p {
             color: var(--text-muted);
-            margin-bottom: 6px;
-            font-weight: 700;
-            display: block;
+            font-size: 0.95rem;
+            margin-bottom: 35px;
         }
 
-        .control-group {
+        /* نموذج إدخال الرابط */
+        .input-group {
+            position: relative;
             display: flex;
             flex-direction: column;
+            gap: 15px;
+            margin-bottom: 25px;
         }
 
-        .row-group {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
-        /* عناصر التحكم الأنيقة */
-        select, input[type="text"], .custom-btn {
+        input[type="text"] {
             width: 100%;
-            background-color: var(--item-bg);
-            border: 1px solid var(--border-color);
+            background: rgba(15, 23, 42, 0.6);
+            border: 2px solid var(--border-color);
+            padding: 16px 20px;
+            border-radius: 14px;
             color: white;
-            padding: 10px 14px;
-            border-radius: 10px;
+            font-size: 1rem;
             outline: none;
-            font-size: 0.85rem;
-            transition: all 0.2s;
+            transition: all 0.3s;
+            text-align: left; /* لأن روابط يوتيوب بالإنجليزية */
         }
 
-        select:focus, input[type="text"]:focus {
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+        input[type="text"]:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.2);
         }
 
-        input[type="color"] {
-            -webkit-appearance: none;
-            border: none;
-            width: 42px;
-            height: 42px;
-            border-radius: 12px;
-            cursor: pointer;
-            background: none;
-        }
-        input[type="color"]::-webkit-color-swatch {
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-        }
-
-        /* سلايدر ناعم */
-        input[type="range"] {
-            -webkit-appearance: none;
-            width: 100%;
-            height: 6px;
-            background: #27273a;
-            border-radius: 5px;
-            outline: none;
-        }
-        input[type="range"]::-webkit-canvas-slider-thumb, 
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: var(--accent-color);
-            cursor: pointer;
-            transition: transform 0.1s;
-        }
-        input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.2);
-        }
-
-        /* الأزرار الاحترافية */
-        .btn-grid {
+        /* أزرار الخيارات */
+        .btn-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 8px;
+            gap: 12px;
         }
 
         .btn {
-            background-color: var(--accent-color);
-            color: white;
+            padding: 14px 20px;
             border: none;
-            padding: 10px 16px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            transition: all 0.2s;
-        }
-        .btn:hover {
-            background-color: var(--accent-hover);
-            transform: translateY(-1px);
-        }
-        .btn-secondary {
-            background-color: var(--item-bg);
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-        }
-        .btn-secondary:hover {
-            background-color: #252532;
-        }
-        .btn-danger { background-color: #ef4444; }
-        .btn-danger:hover { background-color: #dc2626; }
-        .btn-tool.active {
-            background-color: var(--accent-color);
-            border-color: var(--accent-color);
-        }
-
-        /* لوحة نظام الطبقات المرقمة والمستقلة */
-        .layers-panel {
-            border-top: 1px solid var(--border-color);
-            padding-top: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .layers-list {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            max-height: 140px;
-            overflow-y: auto;
-        }
-
-        .layer-item {
-            background-color: var(--item-bg);
-            border: 1px solid var(--border-color);
-            padding: 8px 12px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .layer-item.active {
-            border-color: var(--accent-color);
-            background-color: rgba(79, 70, 229, 0.1);
-        }
-        .layer-controls {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-        .layer-visibility {
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-
-        /* مساحة العمل والكانفاس المكدس للطبقات */
-        .canvas-area {
-            flex-grow: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            background-color: #0c0c0e;
-            padding: 20px;
-            transition: all 0.4s ease;
-        }
-        .canvas-area.grid-active {
-            background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
-            background-size: 24px 24px;
-        }
-
-        .canvas-container {
-            width: 850px;
-            height: 600px;
-            position: relative;
-            background-color: white;
-            box-shadow: 0 25px 60px rgba(0,0,0,0.7);
             border-radius: 12px;
-            overflow: hidden;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: white;
         }
 
-        /* تكديس الطبقات فوق بعضها بدقة */
-        .canvas-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
+        .btn-mp3 {
+            background: linear-gradient(135deg, #ec4899 0%, #d946ef 100%);
+        }
+        .btn-mp3:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(217, 70, 239, 0.3);
+        }
+
+        .btn-mp4 {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+        }
+        .btn-mp4:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(139, 92, 246, 0.3);
+        }
+
+        /* شاشة التحميل الاستباقية */
+        .loading-status {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #fbbf24;
+            display: none;
+        }
+
+        /* إطار عرض النتيجة المخفي */
+        .result-box {
+            margin-top: 30px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 25px;
+            display: none;
+        }
+
+        iframe {
             width: 100%;
-            height: 100%;
-            display: block;
-        }
-        /* جعل الطبقة النشطة فقط هي التي تلتقط مؤشر الماوس للرسم */
-        .canvas-layer.active-target {
-            z-index: 5;
-            cursor: crosshair;
-        }
-        .canvas-layer.hidden-layer {
-            display: none;
+            height: 60px;
+            border: none;
+            border-radius: 12px;
+            background: transparent;
         }
 
-        /* مؤشر الدائرة العائم للفرشاة */
-        .brush-preview {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            border: 2px solid #ffffff;
-            box-shadow: 0 0 6px rgba(0,0,0,0.5);
-            position: absolute;
-            pointer-events: none;
-            transform: translate(-50%, -50%);
-            display: none;
-            z-index: 200;
+        .footer-note {
+            margin-top: 30px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
         }
     </style>
 </head>
 <body>
 
-    <button class="toggle-sidebar-btn" id="toggleSidebarBtn" title="إخفاء / إظهار اللوحة">☰</button>
-
-    <div class="sidebar" id="sidebarPanel">
-        <div class="sidebar-header">
-            <h2>استوديو الإبداع Pro</h2>
+    <div class="container">
+        <div class="header">
+            <h1>محمل الوسائط الفائق</h1>
+            <p>ضع رابط فيديو يوتيوب أو الأغنية بالأسفل وحملها فوراً بأعلى جودة</p>
         </div>
 
-        <div class="control-group">
-            <span class="section-title">الألوان والأدوات السريعة</span>
-            <div class="row-group">
-                <input type="color" id="colorPicker" value="#4f46e5">
-                <button class="btn btn-secondary btn-tool" id="eyedropperBtn" style="padding:10px;">🧪 قطارة</button>
-                <button class="btn btn-secondary btn-tool" id="bucketBtn" style="padding:10px;">🪣 تعبئة</button>
+        <div class="input-group">
+            <input type="text" id="videoUrl" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off">
+            
+            <div class="btn-container">
+                <button class="btn btn-mp3" onclick="startDownload('mp3')">🎵 تحميل كـ MP3 (صوت)</button>
+                <button class="btn btn-mp4" onclick="startDownload('mp4')">🎬 تحميل كـ MP4 (فيديو)</button>
             </div>
         </div>
 
-        <div class="control-group">
-            <span class="section-title">نمط الفرشاة والأشكال</span>
-            <select id="brushType">
-                <option value="solid">🖌️ فرشاة ناعمة صلبة</option>
-                <option value="watercolor">💧 تأثير ألوان مائية</option>
-                <option value="pencil">✏️ قلم رصاص خشن للتظليل</option>
-                <option value="line">📏 خط مستقيم</option>
-                <option value="rect">⬛ مستطيل</option>
-                <option value="circle">⚪ دائرة</option>
-                <option value="eraser">🧽 الممحاة</option>
-            </select>
+        <div class="loading-status" id="loadingStatus">⏳ جاري معالجة الرابط وتحضير خوادم التحميل... يرجى الانتظار ثواني.</div>
+
+        <div class="result-box" id="resultBox">
+            <iframe id="downloadFrame" src=""></iframe>
         </div>
 
-        <div class="control-group">
-            <span class="section-title">قوالب تلوين واستيراد</span>
-            <select id="templateSelect" style="margin-bottom: 8px;">
-                <option value="none">--- لوحة فارغة ---</option>
-                <option value="monalisa">🖼️ لوحة الموناليزا</option>
-                <option value="mandala">🌸 زخرفة ماندالا</option>
-            </select>
-            <label for="imageLoader" class="btn btn-secondary" style="font-size:0.8rem; cursor:pointer; text-align:center;">
-                📂 استيراد صورة من جهازك
-            </label>
-            <input type="file" id="imageLoader" style="display: none;">
-        </div>
-
-        <div class="control-group">
-            <div class="row-group" style="justify-content: space-between; margin-bottom:4px;">
-                <label>حجم الفرشاة والأداة</label>
-                <span id="widthVal" style="color:var(--accent-hover); font-size:0.8rem;">12px</span>
-            </div>
-            <input type="range" id="lineWidth" min="1" max="80" value="12">
-        </div>
-
-        <div class="control-group">
-            <div class="row-group" style="justify-content: space-between; margin-bottom:4px;">
-                <label>درجة الشفافية</label>
-                <span id="opacityVal" style="color:var(--accent-hover); font-size:0.8rem;">100%</span>
-            </div>
-            <input type="range" id="opacity" min="1" max="100" value="100">
-        </div>
-
-        <div class="btn-grid">
-            <button class="btn btn-secondary" id="toggleGridBtn">🌐 الشبكة</button>
-            <button class="btn btn-danger" id="clearCanvas">🧹 مسح الحالية</button>
-        </div>
-        <button class="btn" id="downloadImage">💾 تصدير وحفظ العمل بالكامل</button>
-
-        <div class="layers-panel">
-            <div class="row-group" style="justify-content: space-between;">
-                <span class="section-title" style="margin:0;">الطبقات المرقمة (Layers)</span>
-                <button class="btn" id="addLayerBtn" style="padding: 2px 10px; font-size:0.75rem;">+ طبقة جديدة</button>
-            </div>
-            <div class="layers-list" id="layersList">
-                </div>
+        <div class="footer-note">
+            * ملاحظة: عند الضغط على التحميل، سيقوم النظام بفتح نافذة التحميل المباشرة التابعة للخادم الآمن.
         </div>
     </div>
-
-    <div class="canvas-area grid-active" id="canvasArea">
-        <div class="canvas-container" id="canvasContainer">
-            </div>
-    </div>
-
-    <div class="brush-preview" id="brushPreview"></div>
 
     <script>
-        const sidebarPanel = document.getElementById('sidebarPanel');
-        const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
-        const canvasContainer = document.getElementById('canvasContainer');
-        const canvasArea = document.getElementById('canvasArea');
-        
-        const colorPicker = document.getElementById('colorPicker');
-        const eyedropperBtn = document.getElementById('eyedropperBtn');
-        const bucketBtn = document.getElementById('bucketBtn');
-        const brushType = document.getElementById('brushType');
-        const templateSelect = document.getElementById('templateSelect');
-        const imageLoader = document.getElementById('imageLoader');
+        function startDownload(type) {
+            const urlInput = document.getElementById('videoUrl').value.trim();
+            const loadingStatus = document.getElementById('loadingStatus');
+            const resultBox = document.getElementById('resultBox');
+            const downloadFrame = document.getElementById('downloadFrame');
 
-        const lineWidthRange = document.getElementById('lineWidth');
-        const widthVal = document.getElementById('widthVal');
-        const opacityRange = document.getElementById('opacity');
-        const opacityVal = document.getElementById('opacityVal');
-        
-        const toggleGridBtn = document.getElementById('toggleGridBtn');
-        const clearBtn = document.getElementById('clearCanvas');
-        const downloadBtn = document.getElementById('downloadImage');
-        const brushPreview = document.getElementById('brushPreview');
-        
-        const layersList = document.getElementById('layersList');
-        const addLayerBtn = document.getElementById('addLayerBtn');
+            // التحقق من صحة الرابط المدخل
+            if (!urlInput) {
+                alert('الرجاء إدخال رابط فيديو يوتيوب أولاً!');
+                return;
+            }
 
-        let isDrawing = false;
-        let isEyedropperActive = false;
-        let isBucketActive = false;
-        let lastX = 0, lastY = 0;
-        let startX = 0, startY = 0;
-        let tempSnapshot = null;
+            if (!urlInput.includes('youtube.com') && !urlInput.includes('youtu.be')) {
+                alert('الرجاء التأكد من أن الرابط يتبع لموقع يوتيوب!');
+                return;
+            }
 
-        // مصفوفة لتخزين بيانات الطبقات
-        let layers = []; 
-        let activeLayerId = null;
-        let layerCounter = 0;
+            // إظهار نص التحميل للمستخدم
+            loadingStatus.style.display = 'block';
+            resultBox.style.display = 'block';
 
-        // إخفاء وإظهار القائمة الجانبية بسلاسة
-        toggleSidebarBtn.addEventListener('click', () => {
-            sidebarPanel.classList.toggle('hidden');
-        });
+            // استخراج معرف الفيديو (Video ID) من الرابط لتمكين الـ API من قراءته
+            let videoId = "";
+            if (urlInput.includes('v=')) {
+                videoId = urlInput.split('v=')[1].split('&')[0];
+            } else if (urlInput.includes('youtu.be/')) {
+                videoId = urlInput.split('youtu.be/')[1].split('?')[0];
+            }
 
-        // إنشاء طبقة جديدة مبرمجة ومستقلة
-        function createNewLayer(name = null) {
-            layerCounter++;
-            const id = `layer_${layerCounter}`;
-            const layerName = name || `طبقة رقم ${layerCounter}`;
-
-            // 1. إنشاء عنصر كافناس حقيقي وإضافته للحاوية المكدسة
-            const newCanvas = document.createElement('canvas');
-            newCanvas.width = 850;
-            newCanvas.height = 600;
-            newCanvas.className = 'canvas-layer';
-            newCanvas.id = id;
-            canvasContainer.appendChild(newCanvas);
-
-            const ctx = newCanvas.getContext('2d', { willReadFrequently: true });
+            // استخدام بوابة تحويل وخدمة API عالمية ومجانية آمنة (Y2Mate API Gate)
+            // تقوم الخدمة بمعالجة الجودة تلقائياً (320kbps للصوت و 1080p/720p للفيديو)
+            const apiBaseUrl = `https://twoshot-api-gate.vercel.app/api/widget/${type}/${videoId}`;
             
-            // إذا كانت هذه الطبقة الأولى والأساسية، نقوم بتعبئتها باللون الأبيض
-            if (layers.length === 0) {
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(0, 0, 850, 600);
-            }
+            // تحديث الإطار الداخلي بالرابط الجديد لبدء المعالجة والتحميل الفوري
+            downloadFrame.src = apiBaseUrl;
 
-            const layerObj = {
-                id: id,
-                name: layerName,
-                canvas: newCanvas,
-                ctx: ctx,
-                visible: true
-            };
-
-            // إضافة الطبقة في مقدمة المصفوفة (لتكون في الأعلى بصرياً)
-            layers.unshift(layerObj);
-            selectLayer(id);
-            renderLayersUI();
+            // إخفاء رسالة الانتظار بعد فترة وجيزة بمجرد استجابة الخادم
+            setTimeout(() => {
+                loadingStatus.style.display = 'none';
+            }, 4000);
         }
-
-        // تحديث واجهة الطبقات
-        function renderLayersUI() {
-            layersList.innerHTML = '';
-            // نعرضها بترتيب عكسي لتطابق التكديس البصري (الأعلى يظهر أولاً في القائمة)
-            layers.forEach(layer => {
-                const item = document.createElement('div');
-                item.className = `layer-item ${layer.id === activeLayerId ? 'active' : ''}`;
-                item.innerHTML = `
-                    <span>${layer.name}</span>
-                    <div class="layer-controls">
-                        <button class="layer-visibility" onclick="toggleLayerVisibility(event, '${layer.id}')">
-                            ${layer.visible ? '👁️' : '❌'}
-                        </button>
-                    </div>
-                `;
-                item.addEventListener('click', () => selectLayer(layer.id));
-                layersList.appendChild(item);
-            });
-        }
-
-        // اختيار الطبقة النشطة للرسم عليها
-        function selectLayer(id) {
-            activeLayerId = id;
-            layers.forEach(layer => {
-                if (layer.id === id) {
-                    layer.canvas.classList.add('active-target');
-                    // ربط أحداث الماوس بالطبقة النشطة الحالية
-                    attachCanvasEvents(layer.canvas, layer.ctx);
-                } else {
-                    layer.canvas.classList.remove('active-target');
-                }
-            });
-            renderLayersUI();
-        }
-
-        // إخفاء وإظهار طبقة معينة
-        window.toggleLayerVisibility = function(event, id) {
-            event.stopPropagation();
-            const layer = layers.find(l => l.id === id);
-            if (layer) {
-                layer.visible = !layer.visible;
-                layer.canvas.classList.toggle('hidden-layer', !layer.visible);
-                renderLayersUI();
-            }
-        };
-
-        addLayerBtn.addEventListener('click', () => createNewLayer());
-
-        // تفعيل أدوات الفرشاة
-        function getBrushSettings(ctx) {
-            const color = colorPicker.value;
-            const opacity = opacityRange.value / 100;
-            const size = lineWidthRange.value;
-
-            ctx.lineWidth = size;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-
-            const r = parseInt(color.slice(1, 3), 16);
-            const g = parseInt(color.slice(3, 5), 16);
-            const b = parseInt(color.slice(5, 7), 16);
-
-            if (brushType.value === 'eraser') {
-                // الممحاة في نظام الطبقات تجعل البكسل شفافاً بدل الأبيض ليظهر ما تحتها!
-                ctx.globalCompositeOperation = 'destination-out';
-                ctx.strokeStyle = 'rgba(0,0,0,1)';
-                ctx.globalAlpha = 1.0;
-            } else {
-                ctx.globalCompositeOperation = 'source-over';
-                if (brushType.value === 'watercolor') {
-                    ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${opacity * 0.12})`;
-                    ctx.globalAlpha = 0.4;
-                } else if (brushType.value === 'pencil') {
-                    ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${opacity * 0.6})`;
-                    ctx.globalAlpha = 0.75;
-                } else {
-                    ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${opacity})`;
-                    ctx.globalAlpha = 1.0;
-                }
-            }
-        }
-
-        // ربط الأحداث التفاعلية للكانفاس النشط
-        function attachCanvasEvents(canvas, ctx) {
-            // إزالة الأحداث السابقة لمنع التكرار والتداخل
-            canvas.onmousedown = null;
-            canvas.onmousemove = null;
-            canvas.onmouseup = null;
-
-            canvas.onmousedown = (e) => {
-                const rect = canvas.getBoundingClientRect();
-                const x = Math.round(e.clientX - rect.left);
-                const y = Math.round(e.clientY - rect.top);
-
-                if (isEyedropperActive) {
-                    const pixel = ctx.getImageData(x, y, 1, 1).data;
-                    colorPicker.value = "#" + ((1 << 24) + (pixel[0] << 16) + (pixel[1] << 8) + pixel[2]).toString(16).slice(1);
-                    isEyedropperActive = false;
-                    eyedropperBtn.classList.remove('active');
-                    updateBrushPreview();
-                    return;
-                }
-
-                if (isBucketActive) {
-                    floodFill(canvas, ctx, x, y, hexToRgb(colorPicker.value));
-                    isBucketActive = false;
-                    bucketBtn.classList.remove('active');
-                    return;
-                }
-
-                isDrawing = true;
-                [lastX, lastY] = [x, y];
-                [startX, startY] = [x, y];
-
-                if (['rect', 'circle', 'line'].includes(brushType.value)) {
-                    tempSnapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                }
-            };
-
-            canvas.onmousemove = (e) => {
-                if (!isDrawing) return;
-                const rect = canvas.getBoundingClientRect();
-                const x = Math.round(e.clientX - rect.left);
-                const y = Math.round(e.clientY - rect.top);
-
-                const tool = brushType.value;
-
-                if (['rect', 'circle', 'line'].includes(tool)) {
-                    ctx.putImageData(tempSnapshot, 0, 0);
-                    getBrushSettings(ctx);
-                    ctx.beginPath();
-                    if (tool === 'rect') {
-                        ctx.rect(startX, startY, x - startX, y - startY);
-                    } else if (tool === 'circle') {
-                        let radius = Math.sqrt(Math.pow(x - startX, 2) + Math.pow(y - startY, 2));
-                        ctx.arc(startX, startY, radius, 0, 2 * Math.PI);
-                    } else if (tool === 'line') {
-                        ctx.moveTo(startX, startY);
-                        ctx.lineTo(x, y);
-                    }
-                    ctx.stroke();
-                } else {
-                    getBrushSettings(ctx);
-                    ctx.beginPath();
-                    ctx.moveTo(lastX, lastY);
-                    ctx.lineTo(x, y);
-                    ctx.stroke();
-                    [lastX, lastY] = [x, y];
-                }
-            };
-
-            canvas.onmouseup = () => isDrawing = false;
-        }
-
-        // خوارزمية التعبئة الذكية لدلو التلوين
-        function floodFill(canvas, ctx, startX, startY, fillColor) {
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const data = imageData.data;
-            const width = canvas.width;
-            const height = canvas.height;
-
-            const baseIndex = (startY * width + startX) * 4;
-            const startRed = data[baseIndex], startGreen = data[baseIndex+1], startBlue = data[baseIndex+2], startAlpha = data[baseIndex+3];
-
-            if (Math.abs(startRed - fillColor.r) < 5 && Math.abs(startGreen - fillColor.g) < 5 && Math.abs(startBlue - fillColor.b) < 5) return;
-
-            const queue = [[startX, startY]];
-            while (queue.length > 0) {
-                const [x, y] = queue.pop();
-                if (x < 0 || x >= width || y < 0 || y >= height) continue;
-                const idx = (y * width + x) * 4;
-
-                if (Math.abs(data[idx] - startRed) < 30 && Math.abs(data[idx+1] - startGreen) < 30 && Math.abs(data[idx+2] - startBlue) < 30) {
-                    data[idx] = fillColor.r; data[idx+1] = fillColor.g; data[idx+2] = fillColor.b; data[idx+3] = 255;
-                    queue.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
-                }
-            }
-            ctx.putImageData(imageData, 0, 0);
-        }
-
-        function hexToRgb(hex) {
-            return { r: parseInt(hex.slice(1, 3), 16), g: parseInt(hex.slice(3, 5), 16), b: parseInt(hex.slice(5, 7), 16) };
-        }
-
-        // استيراد صورة وقوالب
-        imageLoader.addEventListener('change', (e) => {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const img = new Image();
-                img.onload = () => {
-                    const activeLayer = layers.find(l => l.id === activeLayerId);
-                    activeLayer.ctx.drawImage(img, 0, 0, 850, 600);
-                };
-                img.src = event.target.result;
-            };
-            reader.readAsDataURL(e.target.files[0]);
-        });
-
-        templateSelect.addEventListener('change', () => {
-            const val = templateSelect.value;
-            if (val === 'none') return;
-            const activeLayer = layers.find(l => l.id === activeLayerId);
-            const ctx = activeLayer.ctx;
-            ctx.strokeStyle = '#111111';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            if (val === 'monalisa') {
-                ctx.arc(425, 200, 65, 0, Math.PI * 2);
-                ctx.moveTo(360, 200); ctx.bezierCurveTo(340, 300, 370, 450, 350, 550);
-                ctx.moveTo(490, 200); ctx.bezierCurveTo(510, 300, 480, 450, 500, 550);
-            } else if (val === 'mandala') {
-                ctx.arc(425, 300, 150, 0, Math.PI * 2);
-                ctx.arc(425, 300, 90, 0, Math.PI * 2);
-            }
-            ctx.stroke();
-            templateSelect.value = 'none';
-        });
-
-        // تصدير ودمج اللوحة بالكامل عند الحفظ
-        downloadBtn.addEventListener('click', () => {
-            const exportCanvas = document.createElement('canvas');
-            exportCanvas.width = 850; exportCanvas.height = 600;
-            const exportCtx = exportCanvas.getContext('2d');
-
-            // ندمج الطبقات من الأسفل إلى الأعلى بدقة متناهية
-            for (let i = layers.length - 1; i >= 0; i--) {
-                if (layers[i].visible) {
-                    exportCtx.drawImage(layers[i].canvas, 0, 0);
-                }
-            }
-            const link = document.createElement('a');
-            link.download = 'لوحة_ابداعية_كاملة.png';
-            link.href = exportCanvas.toDataURL();
-            link.click();
-        });
-
-        // تفعيل وإلغاء تفعيل أزرار الأدوات
-        eyedropperBtn.addEventListener('click', () => { isEyedropperActive = !isEyedropperActive; isBucketActive = false; eyedropperBtn.classList.toggle('active', isEyedropperActive); bucketBtn.classList.remove('active'); });
-        bucketBtn.addEventListener('click', () => { isBucketActive = !isBucketActive; isEyedropperActive = false; bucketBtn.classList.toggle('active', isBucketActive); eyedropperBtn.classList.remove('active'); });
-        toggleGridBtn.addEventListener('click', () => { canvasArea.classList.toggle('grid-active'); toggleGridBtn.classList.toggle('active'); });
-        clearBtn.addEventListener('click', () => { if(confirm("مسح الطبقة الحالية؟")) { const activeLayer = layers.find(l => l.id === activeLayerId); activeLayer.ctx.clearRect(0,0,850,600); if(layers[layers.length-1].id === activeLayerId) { activeLayer.ctx.fillStyle='#ffffff'; activeLayer.ctx.fillRect(0,0,850,600); } } });
-
-        // عدادات العرض والشفافية والمؤشر
-        lineWidthRange.addEventListener('input', () => { widthVal.textContent = `${lineWidthRange.value}px`; updateBrushPreview(); });
-        opacityRange.addEventListener('input', () => { opacityVal.textContent = `${opacityRange.value}%`; });
-        colorPicker.addEventListener('input', updateBrushPreview);
-        brushType.addEventListener('change', updateBrushPreview);
-
-        function updateBrushPreview() {
-            brushPreview.style.width = `${lineWidthRange.value}px`;
-            brushPreview.style.height = `${lineWidthRange.value}px`;
-            brushPreview.style.backgroundColor = brushType.value === 'eraser' ? 'transparent' : colorPicker.value;
-            brushPreview.style.border = brushType.value === 'eraser' ? '2px dashed white' : '2px solid white';
-        }
-
-        canvasArea.addEventListener('mouseenter', () => brushPreview.style.display = 'block');
-        canvasArea.addEventListener('mouseleave', () => brushPreview.style.display = 'none');
-        canvasArea.addEventListener('mousemove', (e) => { brushPreview.style.left = `${e.clientX}px`; brushPreview.style.top = `${e.clientY}px`; });
-
-        // تشغيل البرنامج وإنشاء الطبقة الأساسية (رقم 1) تلقائياً
-        createNewLayer("طبقة الخلفية الأساسية 1");
-        updateBrushPreview();
     </script>
 </body>
 </html>
